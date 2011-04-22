@@ -1,0 +1,6 @@
+Copyright (c) 2011 Aaron Spear aspear@vmware.com
+
+CIFT is an MIT licensed low footprint static library that can be linked with any application built with GCC. The library takes advantage of the GCC feature that allows instrumentation of function entry and exits to enable minimally intrusive collection of this data for analysis. When rebuilding and then running any application linked against this library, you are able to see full flow control through functions for all threads with extremely accurate timestamps.
+
+You can control the collection of the "trace" data, and then at some point later on, dump the data to a file for analysis. More to come!
+
