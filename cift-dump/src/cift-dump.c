@@ -1,7 +1,7 @@
 /*******************************************************************************
 * CIFT : Compiler Instrumentation Function Tracer
 *
-* Copyright (c) 2011 Aaron Spear  aspear@vmware.com
+* Copyright (c) 2011 Aaron Spear  aaron@ontherock.com
 *
 * This is free software released under the terms of the MIT license:
 *
