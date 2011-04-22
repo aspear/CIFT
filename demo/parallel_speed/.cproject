@@ -27,7 +27,7 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1771111250" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.other.1751419802" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -finstrument-functions" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1808630577" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../cift"/>
+									<listOptionValue builtIn="false" value="../../cift"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1398375994" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -36,7 +36,7 @@
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.1883491912" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.misc.other.1896190232" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0  -finstrument-functions" valueType="string"/>
 								<option id="gnu.c.compiler.option.include.paths.251896036" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../cift"/>
+									<listOptionValue builtIn="false" value="../../cift"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1005603817" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -47,7 +47,7 @@
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.425973775" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cift/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="../../../cift/Debug"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1350272428" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -478,6 +478,7 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1372678544">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1372678544" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -939,6 +940,7 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
