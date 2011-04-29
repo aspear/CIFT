@@ -27,8 +27,8 @@
 ********************************************************************************
 */
 
-#ifndef __CIFT_OS_TIMER_H__
-#define __CIFT_OS_TIMER_H__
+#ifndef __CIFT_OS_H__
+#define __CIFT_OS_H__
 
 #include "cift.h"
 
@@ -47,5 +47,5 @@ static inline CIFT_CONTEXT cift_get_current_thread(void)
     return (CIFT_CONTEXT)pthread_self();
 }
 
-#endif //__CIFT_OS_TIMER_H__
+#endif //__CIFT_OS_H__
 

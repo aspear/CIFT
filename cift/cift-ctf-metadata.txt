@@ -1,58 +1,62 @@
 /** 
 *    CIFT (Compiler Instrumentation Function Tracer) CTF format metadata 
 *    
-*    the C representation of the datastructures for reference (see cift.h):
-*    
-*    typedef enum
-*    {
-*        CIFT_BUFFER_MODE_CIRCULAR        = 0,
-*        CIFT_BUFFER_MODE_FILL_AND_STOP   = 1,
-*        CIFT_BUFFER_MODE_FILL_AND_FLUSH  = 2
-*    } CIFT_BUFFER_MODE;
-*    
-*    typedef uint_fast32_t   CIFT_BOOL;      // type used for all boolean operations
-*    typedef uint_fast32_t   CIFT_COUNT;     // type used for counts of events as well as the buffer size
-*    typedef uint32_t        CIFT_CONTEXT;     // type used for thread id's
-*    typedef uint64_t        CIFT_TIMESTAMP;
-*    typedef void*           CIFT_ADDR;          // a PC value/function address
-*    
-*    //enum for the event id's used by this library
-*    enum CIFT_EVENT_TYPE_VALUES
-*    {
-*        CIFT_EVENT_TYPE_INVALID     = 0,
-*        CIFT_EVENT_TYPE_FUNC_ENTER  = 1,
-*        CIFT_EVENT_TYPE_FUNC_EXIT   = 2,
-*    };
-*    typedef uint32_t CIFT_EVENT_TYPE;  //explicit sizing of the enum
+*    the C representation of the data structures is effectively what you
+*    see below for a 32 bit machine. (see cift.h for actual representation):
 *    
 *    typedef struct
 *    {
-*        CIFT_EVENT_TYPE event_type;  // the type of the event, see CIFT_EVENT_TYPE
-*        CIFT_TIMESTAMP  timestamp;   // high precision timestamp
-*        CIFT_CONTEXT    context;     // the thread of the event
-*        CIFT_ADDR       func_called; // the function that was called
-*        CIFT_ADDR       called_from; // the location that the call was made
-*        CIFT_COUNT      event_count; // the event count at the time of recording this event (for debugging)
+*        uint32_t        event_id;    // the type of the event, see CIFT_EVENT_TYPE
+*        uint64_t        timestamp;   // high precision timestamp
+*        uint32_t        context;     // the thread of the event 
+*        void*           func_called; // the function that was called
+*        void*           called_from; // the location that the call was made
 *    } CIFT_EVENT;
-*
 */
 
-enum CIFT_EVENT_TYPE <32> {
-  CIFT_EVENT_TYPE_INVALID    = 0,
-  CIFT_EVENT_TYPE_FUNC_ENTER = 1,
-  CIFT_EVENT_TYPE_FUNC_EXIT  = 2,
+trace {
+    major = 0;
+    minor = 1;
+    uuid = "2a6422d0-6cee-11e0-8c08-cb07d7b3a564";
 };
 
-typealias integer { size = 32; align = 32; signed = false; } : CIFT_CONTEXT;
-typealias integer { size = 64; align = 64; signed = false; } : CIFT_TIMESTAMP;
-typealias integer { size = 32; align = 32; signed = false; } : CIFT_ADDR;
-typealias integer { size = 32; align = 32; signed = false; } : CIFT_COUNT;
+/* Architecture with 32-bit pointers, 32-bit integers, 64 bit time stamp */
+typealias integer { size = 32; align = 32; signed = false; } := void *;
+typealias integer { size = 64; align = 64; signed = false; } := timestamp_t;
+typealias integer { size = 32; align = 32; signed = false; } := uint32_t;
 
-struct CIFT_EVENT {
-    CIFT_EVENT_TYPE event_type; 
-    CIFT_TIMESTAMP  timestamp;   
-    CIFT_CONTEXT    context;     
-    CIFT_ADDR       func_called; 
-    CIFT_ADDR       called_from; 
-    CIFT_COUNT      event_count; 
+stream {
+    id = 0;
+    event.header := struct {
+        uint32_t    id;
+        timestamp_t timestamp;
+    };
+    event.context := struct {
+        uint32_t    thread_id;
+    };          
+};
+
+/** event header and context is implied for every event in the stream */
+event {
+    name = func_enter;
+    id   = 1;
+    stream_id = 0;
+    fields := struct {
+        void* func_called;
+        void* called_from;
+    };
+};
+
+/* function exit events are the same layout as enter, but the interpretation
+* of the PC values is different.  the first is the function (same), the second
+* is the location inside of the function that it exited/returned from
+*/
+event {
+    name = func_exit;
+    id   = 2;
+    stream_id = 0;
+    fields := struct {
+        void* func_exiting;
+        void* exit_pc;
+    };
 };

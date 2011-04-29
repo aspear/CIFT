@@ -113,8 +113,6 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
 
     for (index=startingIndex;eventsInBuffers != 0;--eventsInBuffers)
     {
-        CIFT_COUNT oldIndex = index;
-
         pEvent = &(cift_event_buffer->event_buffer[index]);
 
         //TODO implement a map that keeps track of call stack level for individual threads/contexts
@@ -192,7 +190,7 @@ CIFT_COUNT cift_dump_to_bin_file( const char* outputFile )
         bytesWritten = fwrite(pBuffer,1,bytesToWrite,fd);
         if (bytesWritten != bytesToWrite)
         {
-            fprintf(stderr,"ERROR: write to file failed\n");
+            fprintf(stderr,"ERROR: write to file failed at %u bytes written\n", (unsigned)totalBytesWritten);
             break;
         }
         bytesLeftToWrite -= bytesWritten;
@@ -210,6 +208,7 @@ void cift_file_dump_atexit_handler()
 
     printf("\nCIFT exit handler called.\n");
 
+    //TODO maybe whether we dump to text and/or binary should be compile time options as well?
     cift_dump_to_text_file("cift_output.txt");
     cift_dump_to_bin_file( "cift_output.bin");
 }
