@@ -138,15 +138,15 @@ static inline CIFT_EVENT* cift_get_next_event(void)
 
     //mark the event as invalid so that it will be dropped if read
     if (pEvent)
-        pEvent->event_type = CIFT_EVENT_TYPE_INVALID;
+        pEvent->event_id = CIFT_EVENT_TYPE_INVALID;
 
     return pEvent;
 }
 
-static inline void cift_log_function_event( uint32_t event_type, void *func_called, void* called_from)
+static inline void cift_log_function_event( uint32_t event_id, void *func_called, void* called_from)
     __attribute__ ((no_instrument_function));
 
-static inline void cift_log_function_event( uint32_t event_type, void *func_called, void* called_from)
+static inline void cift_log_function_event( uint32_t event_id, void *func_called, void* called_from)
 {
     if (!cift_event_buffer)
     {
@@ -178,14 +178,14 @@ static inline void cift_log_function_event( uint32_t event_type, void *func_call
         pEvent->func_called = (CIFT_ADDR)func_called;
 
         // increment statistic on total events collected.  use gcc atomic fetch/increment to avoid locking
-        pEvent->event_count = ATOMIC_FETCH_AND_ADD( &(cift_event_buffer->total_event_count),1);
+        pEvent->event_count = ATOMIC_FETCH_AND_ADD( &(cift_event_buffer->total_events_added),1);
 
-        pEvent->event_type     = event_type; //do this last to mark the event as complete
+        pEvent->event_id     = event_id; //do this last to mark the event as complete
     }
     else
     {
         //we cannot log this event because of configuration or something, drop it
-        ATOMIC_INCREMENT( &(cift_event_buffer->dropped_event_count) );
+        ATOMIC_INCREMENT( &(cift_event_buffer->total_events_dropped) );
     }
 }
 
@@ -252,15 +252,15 @@ CIFT_BOOL cift_configure( CIFT_COUNT totalBytes, CIFT_BUFFER_MODE bufferMode )
     cift_event_buffer->magic[1]             = 'I';
     cift_event_buffer->magic[2]             = 'F';
     cift_event_buffer->magic[3]             = 'T';
-    cift_event_buffer->endian                = 4321;
-    cift_event_buffer->addr_bytes            = (uint8_t)sizeof(void*);
-    cift_event_buffer->cift_count_bytes        = (uint8_t)sizeof(CIFT_COUNT);
-    cift_event_buffer->total_bytes            = totalBytes;
-    cift_event_buffer->init_timestamp        = cift_get_timestamp();
-    cift_event_buffer->buffer_mode             = bufferMode;
-    cift_event_buffer->max_event_count         = maxEventCount;
+    cift_event_buffer->endian               = 0x4321;
+    cift_event_buffer->addr_bytes           = (uint8_t)sizeof(void*);
+    cift_event_buffer->cift_count_bytes     = (uint8_t)sizeof(CIFT_COUNT);
+    cift_event_buffer->total_bytes          = totalBytes;
+    cift_event_buffer->init_timestamp       = cift_get_timestamp();
+    cift_event_buffer->buffer_mode          = bufferMode;
+    cift_event_buffer->max_event_count      = maxEventCount;
     cift_event_buffer->next_event_index     = 0;
-    cift_event_buffer->dropped_event_count     = 0;
+    cift_event_buffer->total_events_dropped  = 0;
 
     #ifdef _DEBUG
         memset( cift_event_buffer->event_buffer,0x00, eventBytes );

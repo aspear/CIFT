@@ -73,8 +73,8 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
     fprintf(fd,"* init_timestamp      = %llu\n",(uint64_t)cift_event_buffer->init_timestamp);
     fprintf(fd,"* buffer_mode         = %u\n",cift_event_buffer->buffer_mode);
     fprintf(fd,"* max_event_count     = %llu\n",(uint64_t)cift_event_buffer->max_event_count);
-    fprintf(fd,"* total_event_count   = %llu\n",(uint64_t)cift_event_buffer->total_event_count);
-    fprintf(fd,"* dropped_event_count = %llu\n",(uint64_t)cift_event_buffer->dropped_event_count);
+    fprintf(fd,"* total_events_added   = %llu\n",(uint64_t)cift_event_buffer->total_events_added);
+    fprintf(fd,"* total_events_dropped = %llu\n",(uint64_t)cift_event_buffer->total_events_dropped);
     fprintf(fd,"* next_event_index    = %llu\n",(uint64_t)cift_event_buffer->next_event_index);
     fprintf(fd,"* sizeof(CIFT_EVENT)=%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
     fprintf(fd,"******************************************************************************\n");
@@ -85,7 +85,7 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
     if (cift_event_buffer->buffer_mode == CIFT_BUFFER_MODE_CIRCULAR)
     {
         //figure out if we start from 0 or from next_event_index
-        if (cift_event_buffer->total_event_count <= cift_event_buffer->max_event_count)
+        if (cift_event_buffer->total_events_added <= cift_event_buffer->max_event_count)
         {
             //we did not wrap, start at 0 and the count is the next index
             startingIndex = 0;
@@ -101,7 +101,7 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
     }
     else
     {
-        eventsInBuffers = cift_event_buffer->total_event_count;
+        eventsInBuffers = cift_event_buffer->total_events_added;
         startingIndex = 0;
     }
 
@@ -117,7 +117,7 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
 
         //TODO implement a map that keeps track of call stack level for individual threads/contexts
 
-        //TODO something smart with pEvent->event_type.  If it is 0, that means that the event was in the
+        //TODO something smart with pEvent->event_id.  If it is 0, that means that the event was in the
         //middle of being written and is not complete and should be dropped
 
         eventsPrinted++;
@@ -126,7 +126,7 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
                         //pEvent->timestamp - cift_event_buffer->init_timestamp,
                         (uint64_t)pEvent->timestamp,
                         (unsigned)pEvent->context,
-                        (unsigned)pEvent->event_type,
+                        (unsigned)pEvent->event_id,
                         (uint64_t)(uintptr_t)pEvent->func_called,
                         (uint64_t)(uintptr_t)pEvent->called_from,
                         (uint64_t)pEvent->event_count);
@@ -175,8 +175,8 @@ CIFT_COUNT cift_dump_to_bin_file( const char* outputFile )
     printf("* init_timestamp      = %016llu\n",(uint64_t)cift_event_buffer->init_timestamp);
     printf("* buffer_mode         = %u\n",cift_event_buffer->buffer_mode);
     printf("* max_event_count     = %llu\n",(uint64_t)cift_event_buffer->max_event_count);
-    printf("* total_event_count   = %llu\n",(uint64_t)cift_event_buffer->total_event_count);
-    printf("* dropped_event_count = %llu\n",(uint64_t)cift_event_buffer->dropped_event_count);
+    printf("* total_events_added   = %llu\n",(uint64_t)cift_event_buffer->total_events_added);
+    printf("* total_events_dropped = %llu\n",(uint64_t)cift_event_buffer->total_events_dropped);
     printf("* next_event_index    = %llu\n",(uint64_t)cift_event_buffer->next_event_index);
     printf("**************************************************\n");
 
@@ -199,7 +199,7 @@ CIFT_COUNT cift_dump_to_bin_file( const char* outputFile )
     }
     fclose(fd);
     printf("CIFT: %u bytes written\n", totalBytesWritten);
-    return cift_event_buffer->total_event_count;
+    return cift_event_buffer->total_events_added;
 }
 
 void cift_file_dump_atexit_handler()

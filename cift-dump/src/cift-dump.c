@@ -95,8 +95,8 @@ int cift_dump_plain_to_stdout( const char* filename )
     uint64_t init_timestamp;
     unsigned buffer_mode;
     uint64_t max_event_count;
-    uint64_t total_event_count;
-    uint64_t dropped_event_count;
+    uint64_t total_events_added;
+    uint64_t total_events_dropped;
     uint64_t next_event_index;
     int    fd;
     size_t  totalFileLength;
@@ -159,8 +159,8 @@ int cift_dump_plain_to_stdout( const char* filename )
     init_timestamp      = (uint64_t)ExtractU64( &cift_event_buffer->init_timestamp);
     buffer_mode         = (unsigned)ExtractU32( &cift_event_buffer->buffer_mode);
     max_event_count     = (uint64_t)ExtractUINTPTR(&cift_event_buffer->max_event_count);
-    total_event_count   = (uint64_t)ExtractUINTPTR(&cift_event_buffer->total_event_count);
-    dropped_event_count = (uint64_t)ExtractUINTPTR(&cift_event_buffer->dropped_event_count);
+    total_events_added   = (uint64_t)ExtractUINTPTR(&cift_event_buffer->total_events_added);
+    total_events_dropped = (uint64_t)ExtractUINTPTR(&cift_event_buffer->total_events_dropped);
     next_event_index    = (uint64_t)ExtractUINTPTR(&cift_event_buffer->next_event_index);
 
     printf("******************************************************************************\n");
@@ -172,8 +172,8 @@ int cift_dump_plain_to_stdout( const char* filename )
     printf("* init_timestamp      = %llu\n",    (uint64_t)init_timestamp);
     printf("* buffer_mode         = %u\n",        (unsigned)buffer_mode);
     printf("* max_event_count     = %llu\n",    (uint64_t)max_event_count);
-    printf("* total_event_count   = %llu\n",    (uint64_t)total_event_count);
-    printf("* dropped_event_count = %llu\n",    (uint64_t)dropped_event_count);
+    printf("* total_events_added   = %llu\n",    (uint64_t)total_events_added);
+    printf("* total_events_dropped = %llu\n",    (uint64_t)total_events_dropped);
     printf("* next_event_index    = %llu\n",    (uint64_t)next_event_index);
     printf("* sizeof(CIFT_EVENT)=%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
     printf("******************************************************************************\n");
@@ -184,7 +184,7 @@ int cift_dump_plain_to_stdout( const char* filename )
     if (buffer_mode == CIFT_BUFFER_MODE_CIRCULAR)
     {
         //figure out if we start from 0 or from next_event_index
-        if (total_event_count <= max_event_count)
+        if (total_events_added <= max_event_count)
         {
             //we did not wrap, start at 0 and the count is the next index
             startingIndex = 0;
@@ -200,7 +200,7 @@ int cift_dump_plain_to_stdout( const char* filename )
     }
     else
     {
-        eventsInBuffers = total_event_count;
+        eventsInBuffers = total_events_added;
         startingIndex = 0;
     }
     printf("* eventsInBuffers=%llu startingIndex=%llu\n",eventsInBuffers,startingIndex);
@@ -215,7 +215,7 @@ int cift_dump_plain_to_stdout( const char* filename )
 
         //TODO implement a map that keeps track of call stack level for individual threads/contexts
 
-        //TODO something smart with pEvent->event_type.  If it is 0, that means that the event was in the
+        //TODO something smart with pEvent->event_id.  If it is 0, that means that the event was in the
         //middle of being written and is not complete and should be dropped
 
         eventsPrinted++;
@@ -223,7 +223,7 @@ int cift_dump_plain_to_stdout( const char* filename )
                 (uint64_t)index,
                 (uint64_t)ExtractU64(&pEvent->timestamp),
                 (unsigned)ExtractU32(&pEvent->context),
-                (unsigned)ExtractU32(&pEvent->event_type),
+                (unsigned)ExtractU32(&pEvent->event_id),
                 (uint64_t)ExtractUINTPTR( &pEvent->func_called ),
                 (uint64_t)ExtractUINTPTR( &pEvent->called_from ),
                 (uint64_t)ExtractUINTPTR( &pEvent->event_count )

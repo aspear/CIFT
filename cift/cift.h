@@ -112,14 +112,14 @@ extern "C" {
 typedef enum
 {
     CIFT_BUFFER_MODE_CIRCULAR        = 0,
-    CIFT_BUFFER_MODE_FILL_AND_STOP    = 1,
+    CIFT_BUFFER_MODE_FILL_AND_STOP   = 1,
 } CIFT_BUFFER_MODE;
 
 typedef uint_fast32_t  CIFT_BOOL;      // type used for all boolean operations
 typedef uintptr_t      CIFT_COUNT;     // type used for counts of events as well as the buffer size
-typedef uint32_t       CIFT_CONTEXT;     // type used for thread id's
+typedef uint32_t       CIFT_CONTEXT;   // type used for thread id's
 typedef uint64_t       CIFT_TIMESTAMP;
-typedef uintptr_t      CIFT_ADDR;          // a PC value/function address
+typedef uintptr_t      CIFT_ADDR;      // a PC value/function address
 
 /**
  * enum for the event id's used by this library
@@ -136,7 +136,7 @@ typedef uint32_t CIFT_EVENT_TYPE;  //explicit sizing of the enum
  * a 32 bit machine, 32 bytes on a 64 bit machine */
 typedef struct
 {
-    CIFT_EVENT_TYPE event_type;  // the type of the event, see CIFT_EVENT_TYPE
+    CIFT_EVENT_TYPE event_id;    // the type of the event, see CIFT_EVENT_TYPE
     CIFT_TIMESTAMP  timestamp;   // high precision timestamp
     CIFT_CONTEXT    context;     // the thread of the event
     CIFT_ADDR       func_called; // the function that was called
@@ -151,18 +151,18 @@ typedef struct
 typedef struct
 {
     char                magic[4];            //'C','I','F','T'
-    uint16_t            endian;              // the value1 is written into it (by implication you can figure out if big or little)
-    uint8_t             addr_bytes;          // target architecture number of bytes in a pointer
-    uint8_t             cift_count_bytes;    // target architecture bytes in a CIFT_COUNT type instance
-    uint8_t             header_bytes;
+    uint16_t            endian;              // BE: 43 21, LE: 21 43
+    uint8_t             addr_bytes;          // sizeof(void*) for target architecture
+    uint8_t             cift_count_bytes;    // sizeof(CIFT_COUNT)
+    uint8_t             header_bytes;        // sizeof(CIFT_EVENT_BUFFER) excluding events
     uint64_t            total_bytes;         // total number of bytes in this buffer including this header
     uint64_t            init_timestamp;      // the timestamp at the init of the buffer
-    CIFT_BUFFER_MODE    buffer_mode;         // CIFT_BUFFER_MODE mode of the buffer
+    CIFT_BUFFER_MODE    buffer_mode;         // circular? fill and stop?
     CIFT_COUNT          max_event_count;     // the total number of events that the buffer can hold
     volatile CIFT_COUNT next_event_index;    // the index of next available event
-    volatile CIFT_COUNT total_event_count;   // the number of events that have been added (statistic...)
-    volatile CIFT_COUNT dropped_event_count; // the number of events that have been dropped (statistic...)
-    CIFT_EVENT           event_buffer[0];    // the main event buffer circular buffer
+    volatile CIFT_COUNT total_events_added;  // total events added
+    volatile CIFT_COUNT total_events_dropped;// total events dropped (statistic...)
+    CIFT_EVENT          event_buffer[0];     // event buffer circular buffer
 } CIFT_EVENT_BUFFER;
 
 //single global variable holding the buffer for the function events
