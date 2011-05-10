@@ -260,7 +260,8 @@ CIFT_BOOL cift_configure( CIFT_COUNT totalBytes, CIFT_BUFFER_MODE bufferMode )
     cift_event_buffer->buffer_mode          = bufferMode;
     cift_event_buffer->max_event_count      = maxEventCount;
     cift_event_buffer->next_event_index     = 0;
-    cift_event_buffer->total_events_dropped  = 0;
+    cift_event_buffer->total_events_dropped = 0;
+    cift_event_buffer->total_events_added   = 0;
 
     #ifdef _DEBUG
         memset( cift_event_buffer->event_buffer,0x00, eventBytes );
