@@ -1,9 +1,14 @@
+package com.vmware.cift;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+//import NMSymbolExtractor;
+
+
 
 
 /**
@@ -22,7 +27,7 @@ public class CIFT_Dumper {
 	private boolean endian_swap;
 	private int addr_bytes;
 	
-	NMSymbolExtracter symbolExtracter;
+	private NMSymbolExtractor symbolExtracter;
 	/**
 	 * @param args first arg is the path to the exe.  the second is the CIFT file
 	 */
@@ -68,7 +73,7 @@ public class CIFT_Dumper {
 	}
 
 	public void readCIFTFile( String executableFilePath, String ciftFilePath ) {
-		symbolExtracter = new NMSymbolExtracter();
+		symbolExtracter = new NMSymbolExtractor();
 		if (!symbolExtracter.init(executableFilePath)){
 			System.err.println("ERROR: unable to initialize symbol dumper");
 			return;
@@ -95,7 +100,7 @@ public class CIFT_Dumper {
 		      return (long)ExtractU32(buffer,offset);
 		else
 		     return ExtractU64(buffer,offset);
-		}
+	}
 	
 	public int cift_dump_plain_to_stdout( String filename )
 		{
@@ -112,7 +117,7 @@ public class CIFT_Dumper {
 		    long total_events_dropped;
 		    long next_event_index;
 		    int    fd;
-		    long  totalFileLength;
+		    long  totalFileLength=0;;
 		    
 		    ByteBuffer cift_event_buffer = byteBufferForFile(filename);
 
@@ -123,45 +128,30 @@ public class CIFT_Dumper {
 		        return EXIT_FAILURE;
 		    }
 
-		    cift_event_buffer.order(bo)
-		    //figure out the total size of the file so we can map it all
-		    status = fstat(fd, &statBuffer);
-		    totalFileLength = statBuffer.st_size;
-
 		    //sanity check the file length
-		    if ( totalFileLength < sizeof(CIFT_EVENT_BUFFER))
+		    if ( totalFileLength < 12)//sizeof(CIFT_EVENT_BUFFER))
 		    {
-		       	close(fd);
 		       	System.err.printf("cift-dump: file %s is smaller than sizeof(CIFT_EVENT_BUFFER).  There is no way it is a valid file.\n",
 		       			filename);
 		        return EXIT_FAILURE;
 		    }
 
-		    printf("cift-dump: opened %s, file size: %u\n",filename,totalFileLength);
-
-		    //memory map the file
-		    cift_event_buffer = (CIFT_EVENT_BUFFER*)mmap(0, totalFileLength, PROT_READ, MAP_SHARED, fd, 0);
-		    if (cift_event_buffer == MAP_FAILED)
-		    {
-		        close(fd);
-		        System.err.printf("cift-dump: Error mmapping the file\n");
-		        return EXIT_FAILURE;
-		    }
+		    System.out.printf("cift-dump: opened %s, file size: %u\n",filename,totalFileLength);
 
 		    //do a sanity check on the file.  see if the magic value is there.
-		    if (       cift_event_buffer->magic[0] != 'C'
-		    		||(cift_event_buffer->magic[1] != 'I')
-		    		||(cift_event_buffer->magic[2] != 'F')
-		    		||(cift_event_buffer->magic[3] != 'T'))
+		    if (       cift_event_buffer.get(0) != 'C'
+		    		||(cift_event_buffer.get(1) != 'I')
+		    		||(cift_event_buffer.get(2) != 'F')
+		    		||(cift_event_buffer.get(3) != 'T'))
 		    {
-		    	munmap(cift_event_buffer, totalFileLength);
-		    	close(fd);
-		    	 System.err.printf("cift-dump: file %s is missing the CIFT magic value at the start of the file.  It does not appear to be a valid image\n",
+		    	System.err.printf("cift-dump: file %s is missing the CIFT magic value at the start of the file.  It does not appear to be a valid image\n",
 		    			filename);
 		        return EXIT_FAILURE;
 		    }
 
-		    //figure out endian value first. if the value is 4321, that means that the target is the
+		    /*
+		     * //figure out endian value first. if the value is 4321, that means that the target is the
+		     
 		    //same endian as the host
 		    endian_swap         = (cift_event_buffer->endian != 4321);
 
@@ -175,22 +165,22 @@ public class CIFT_Dumper {
 		    total_events_dropped = (long)ExtractUINTPTR(&cift_event_buffer->total_events_dropped);
 		    next_event_index    = (long)ExtractUINTPTR(&cift_event_buffer->next_event_index);
 
-		    printf("******************************************************************************\n");
-		    printf("* magic               = %c %c %c %c\n",cift_event_buffer->magic[0],cift_event_buffer->magic[1],cift_event_buffer->magic[2],cift_event_buffer->magic[3]);
-		    printf("* endian              = %u\n",    (int)cift_event_buffer->endian);
-		    printf("* addr_bytes          = %u\n",        (int)cift_event_buffer->addr_bytes);
-		    printf("* cift_count_bytes    = %u\n",        (int)cift_count_bytes);
-		    printf("* total_bytes         = %llu\n",    (long)total_bytes );
-		    printf("* init_timestamp      = %llu\n",    (long)init_timestamp);
-		    printf("* buffer_mode         = %u\n",        (int)buffer_mode);
-		    printf("* max_event_count     = %llu\n",    (long)max_event_count);
-		    printf("* total_events_added   = %llu\n",    (long)total_events_added);
-		    printf("* total_events_dropped = %llu\n",    (long)total_events_dropped);
-		    printf("* next_event_index    = %llu\n",    (long)next_event_index);
-		    printf("* sizeof(CIFT_EVENT)=%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
-		    printf("******************************************************************************\n");
+		    System.out.printf("******************************************************************************\n");
+		    System.out.printf("* magic               = %c %c %c %c\n",cift_event_buffer->magic[0],cift_event_buffer->magic[1],cift_event_buffer->magic[2],cift_event_buffer->magic[3]);
+		    System.out.printf("* endian              = %u\n",    (int)cift_event_buffer->endian);
+		    System.out.printf("* addr_bytes          = %u\n",        (int)cift_event_buffer->addr_bytes);
+		    System.out.printf("* cift_count_bytes    = %u\n",        (int)cift_count_bytes);
+		    System.out.printf("* total_bytes         = %llu\n",    (long)total_bytes );
+		    System.out.printf("* init_timestamp      = %llu\n",    (long)init_timestamp);
+		    System.out.printf("* buffer_mode         = %u\n",        (int)buffer_mode);
+		    System.out.printf("* max_event_count     = %llu\n",    (long)max_event_count);
+		    System.out.printf("* total_events_added   = %llu\n",    (long)total_events_added);
+		    System.out.printf("* total_events_dropped = %llu\n",    (long)total_events_dropped);
+		    System.out.printf("* next_event_index    = %llu\n",    (long)next_event_index);
+		   // System.out.printf("* sizeof(CIFT_EVENT)=%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
+		    System.out.printf("******************************************************************************\n");
 
-		    CIFT_EVENT* pEvent = 0;
+		   // CIFT_EVENT* pEvent = 0;
 
 		    //calculate the total number of events that are in the buffers
 		    if (buffer_mode == CIFT_BUFFER_MODE_CIRCULAR)
@@ -215,11 +205,11 @@ public class CIFT_Dumper {
 		        eventsInBuffers = total_events_added;
 		        startingIndex = 0;
 		    }
-		    printf("* eventsInBuffers=%llu startingIndex=%llu\n",eventsInBuffers,startingIndex);
-		    printf("******************************************************************************\n");
+		    System.out.printf("* eventsInBuffers=%llu startingIndex=%llu\n",eventsInBuffers,startingIndex);
+		    System.out.printf("******************************************************************************\n");
 
 		    //write out a header for the data
-		    printf("timestamp,context,type,function,caller,total count\n");
+		    System.out.printf("timestamp,context,type,function,caller,total count\n");
 
 		    for (index=startingIndex;eventsInBuffers != 0;--eventsInBuffers)
 		    {
@@ -231,7 +221,7 @@ public class CIFT_Dumper {
 		        //middle of being written and is not complete and should be dropped
 
 		        eventsPrinted++;
-		        printf("%llu,%llu,0x%08X,%u,0x%08llX,0x%08llX,%llu\n",
+		        System.out.printf("%llu,%llu,0x%08X,%u,0x%08llX,0x%08llX,%llu\n",
 		                (long)index,
 		                (long)ExtractU64(&pEvent->timestamp),
 		                (int)ExtractU32(&pEvent->context),
@@ -243,8 +233,8 @@ public class CIFT_Dumper {
 
 		        index = (index + 1) % max_event_count;//increment/wrap the index
 		    }
-		    printf("******************************************************************************\n");
-		    printf("* cift-dump: %llu events dumped\n", (long)eventsPrinted);
+		    System.out.printf("******************************************************************************\n");
+		    System.out.printf("* cift-dump: %llu events dumped\n", (long)eventsPrinted);
 
 		    if (munmap(cift_event_buffer, totalFileLength) == -1)
 		    {
@@ -253,5 +243,7 @@ public class CIFT_Dumper {
 
 		    close(fd);
 	}
-
+	*/
+		    return EXIT_FAILURE;
+		}
 }

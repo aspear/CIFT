@@ -1,6 +1,9 @@
+package com.vmware.cift;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.Runtime;
@@ -8,11 +11,12 @@ import java.lang.Runtime;
 import sun.misc.Regexp;
 import java.util.regex.*;
 
-public class NMSymbolExtracter {
+
+public class NMSymbolExtractor {
 
 	private RangeLookup rangeLookup;
 	
-	public NMSymbolExtracter() {
+	public NMSymbolExtractor() {
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -48,11 +52,17 @@ public class NMSymbolExtracter {
 			
 			//delete the symbol file if it exists already
 			File symbolFile = new File(nmName);
-			if (symbolFile.exists())
-			{
-				symbolFile.delete();
-			}
-			symbolFile = null;
+			if (symbolFile.exists()) {
+				if (symbolFile.lastModified() > executableFile.lastModified()){
+					//you are done because the symbol file exists and is newer than the executable
+					return true;
+				}
+				else {
+					//it was modifed, get rid of it and regenerate.
+					symbolFile.delete();
+					symbolFile = null;
+				}
+			}			
 			
 			File outputFile = new File(nmName);
 			
@@ -64,10 +74,11 @@ public class NMSymbolExtracter {
 			String[] command = {"/bin/sh", "-c", cmdOnly};
 			Process p = Runtime.getRuntime().exec(command);
 
-			//Process p = runtime.exec("/usr/bin/nm", cmdArray, outputDir);
-			//p.wait(5,0);
-			
-			//FIXME FIGURE OUT THE REDIRECTION
+			try{
+				p.wait(5);
+			}catch(InterruptedException e){
+				
+			}
 			
 			//int exitValue = p.exitValue();
 			//System.out.println("process exited with " + exitValue);
@@ -94,13 +105,17 @@ public class NMSymbolExtracter {
 	public boolean parseSymbolFile(String symbolFilePath) {
 		
 		try{
+					
 			File symbolFile = new File(symbolFilePath);
 			if (!symbolFile.exists() || !symbolFile.isFile()){
 				System.err.println("Symbol file '" + symbolFilePath + "'doesn't exit");
 				return false;//TODO what to throw?
 			}
 			
-			Pattern nmFuncRegexPattern = Pattern.compile("^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([A-Za-z0-9_:,\\(\\)\\*]+)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)");
+			File outputFile = new File(symbolFilePath + ".out");
+			FileWriter writer = new FileWriter(outputFile);
+			
+			Pattern nmFuncRegexPattern = Pattern.compile("^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)");
 			
 			Matcher lineMatcher = nmFuncRegexPattern.matcher("");
 						
@@ -175,15 +190,16 @@ public class NMSymbolExtracter {
 						
 						rangeLookup.addRange(startAddress,endAddress,functionName);
 						
-						System.out.println( 
-								Integer.toString(lineCount)
-								+ ") " + Integer.toHexString(startAddress) 
-								+ "-" + Integer.toHexString(endAddress)
-								+ "  function='"
-								+ functionName
-								+ "'  file='"
+						writer.append(
+								"0x" + Integer.toHexString(startAddress) 
+								+ "\t"
+								+ "0x" + Integer.toHexString(endAddress)
+								+ "\t"
+								+ functionName + ")"
+								+ "\t"
 								+ fileName
-								+ "':" + Integer.toString(lineNumber));
+								+ "\t" + Integer.toString(lineNumber)
+								+ "\n");
 					}catch(NumberFormatException e){
 						System.err.println("NumberFormatException " + e.toString() + "line="
 								+ Integer.toString(linesInFileCount));
@@ -195,6 +211,7 @@ public class NMSymbolExtracter {
 			catch(IOException e){
 				e.printStackTrace();
 			}
+			writer.flush();
 			return true;
 		}
 		catch(IOException e)
