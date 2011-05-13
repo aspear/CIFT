@@ -25,8 +25,8 @@ class RangeItem {
 		return last < o.first;
 	}
 	bool operator > (const RangeItem<range_element,value_type>& o) const{
-			return o.last < first;
-		}
+		return o.last < first;
+	}
 
 	bool operator == (const RangeItem<range_element,value_type>& o) const{
 		return (first == o.first)&&(last == o.last);

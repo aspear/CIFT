@@ -23,10 +23,6 @@ public:
 	int    line;
 };
 
-
-
-
-
 class NMSymbolExtractor {
 
 private:
@@ -166,47 +162,28 @@ public:
 
 	String getStringForAddress( uint64_t address )
 	{
-		/*Range range = rangeLookup.lookupRange(address);
-		if (range != null){
-
-			int diff = address - range.lower;
-			return range.functionName + "+" +  Integer.toString(diff);
-		}
-		else
-		{
-			return "0x"+Integer.toString(address,16);
-		}
-		*/
+		char buffer[1024];
 		FunctionInfo* pInfo = rangeLookup.findRange(address);
 		if (pInfo)
 		{
-			char buffer[1024];
 			snprintf(buffer,sizeof(buffer)-1,"%s+%d",pInfo->name.c_str(),(int)(address - pInfo->lowAddress));
-			buffer[sizeof(buffer)-1]=0;
-			return String(buffer);
-		}
-		return "?";
-	}
-
-	/*void testAddress( int address )
-	{
-		Range range = rangeLookup.lookupRange(address);
-		if (range != null){
-
-			int diff = address - range.lower;
-
-			printf( Integer.toString(address,16) + " -> ["
-					+ Integer.toString(range.lower,16)
-					+ "-" +  Integer.toString(range.upper,16)
-					+ "] " + range.functionName + " + " +  Integer.toString(diff)  );
 		}
 		else
 		{
-			printf( Integer.toString(address,16) + " -> null" );
+			snprintf(buffer,sizeof(buffer)-1,"0x%llX",address);
 		}
-		*/
+		buffer[sizeof(buffer)-1]=0;
+		return String(buffer);
+	}
 
-	/*void test() {
+	void testAddress( uint64_t address )
+	{
+		String rangeString = getStringForAddress(address);
+
+		printf( "0x%08llX -> %s\n",address,rangeString.c_str());
+	}
+
+	void test() {
 
 		//10) 804a770-804a7bc  function='stack_of_cards_class::size()'  file='/home/joe/trace/CIFT/demo/parallel_speed/Debug/../stack_of_cards.cpp':236
 		//11) 804a7c0-804a815  function='stack_of_cards_class::last_card()'  file='/home/joe/trace/CIFT/demo/parallel_speed/Debug/../stack_of_cards.cpp':68
@@ -228,5 +205,4 @@ public:
 		//08049370 000000ae T deck_class::deck_class()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../deck.cpp:22
 
 	}
-	*/
 };
