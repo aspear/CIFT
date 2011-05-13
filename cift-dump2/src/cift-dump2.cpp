@@ -43,6 +43,7 @@
 #include "cift.h"
 
 #include "address-range-lookup.h"
+#include "nm-symbol-extractor.h"
 //if true we are going to endian convert
 int endian_swap = 0;
 int addr_bytes  = 4;
@@ -74,6 +75,8 @@ const char* usage = "cift-dump <filename>\n";
 
 int cift_dump_plain_to_stdout( const char* filename );
 
+NMSymbolExtractor symbolExtractor;
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -81,6 +84,14 @@ int main(int argc, char* argv[])
         fprintf(stderr,"%s", usage );
         return EXIT_FAILURE;
     }
+    //argv[1] is the bin file
+    //argv2 is the symbol file
+    String binFile = argv[1];
+    String symbolFile = argv[2];
+
+    symbolExtractor.init( argv[1] );
+
+    symbolExtractor.test();
 
     return cift_dump_plain_to_stdout( argv[1] );
 }
