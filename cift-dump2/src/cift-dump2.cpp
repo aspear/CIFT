@@ -79,6 +79,8 @@ NMSymbolExtractor symbolExtractor;
 
 int main(int argc, char* argv[])
 {
+    printf("CIFT dumper/convertor version 0.1\n");
+
     if (argc < 2)
     {
         fprintf(stderr,"%s", usage );
@@ -89,7 +91,7 @@ int main(int argc, char* argv[])
     String binFile = argv[1];
     String symbolFile = argv[2];
 
-    symbolExtractor.init( argv[1] );
+    symbolExtractor.init( argv[2] );
 
     symbolExtractor.test();
 
@@ -163,7 +165,7 @@ int cift_dump_plain_to_stdout( const char* filename )
 
     //figure out endian value first. if the value is 4321, that means that the target is the
     //same endian as the host
-    endian_swap         = (cift_event_buffer->endian != 4321);
+    endian_swap         = (cift_event_buffer->endian != 0x4321);
 
     addr_bytes          = cift_event_buffer->addr_bytes;
     cift_count_bytes    = cift_event_buffer->cift_count_bytes;
