@@ -97,6 +97,18 @@ public:
 		}
 		return 0;
 	}
+
+	void dump()
+	{
+		printf("********* RANGE TABLE ***************\n");
+		unsigned index=0;
+		typename RangeVector::iterator i;
+		for (i=rangeVector.begin();i!=rangeVector.end();++i)
+		{
+			printf("%02u) %s\n",index++,i->value.toString().c_str());
+		}
+		printf("********* END RANGE TABLE ***************\n");
+	}
 };
 
 #endif /* ADDRESS_RANGE_LOOKUP_H_ */

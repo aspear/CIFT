@@ -149,118 +149,110 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 	}
 
 	char buffer[1024];
-	regex_t re;
-	regmatch_t pmatch[20];
+	regexp* re=0;
 
+	//this pattern works in java but fails with stock POSIX regcomp,regexec.  I punted and used a library that
+	//I know works
 	// lines are formatted like this:
 	// 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
+	const char* linePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
 
-	//this pattern works in java
-	//const char* linePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
-
-	//this pattern works in java
-	const char* linePattern = "([0-9A-Fa-f]+)[ ]+([0-9A-Fa-f]+)";//[:space:]+T";//[:space:]+([^\\)]+)\\)[:space:]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
-
-	retVal = regcomp(&re,linePattern, REG_EXTENDED );//| RE_SYNTAX_EGREP);
-	if (retVal!= 0)
+	retVal =  re_comp(&re,linePattern);
+	if (retVal< 0)
 	{
-		char errorBuffer[1024];
-		memset(errorBuffer,0,sizeof(errorBuffer));
-		regerror(retVal,&re,errorBuffer,sizeof(errorBuffer)-1);
-		fprintf(stderr,"ERROR running regcomp on (%s) '%s'\n",linePattern,errorBuffer);
+		fprintf(stderr,"ERROR failed to compile regex '%s'\n",linePattern);
 		return false;
 	}
 
-	String functionName;
-	String fileName;
-	volatile int fixme=0;
+	FunctionInfo functionInfo;
+
+	unsigned subExpCount = re_nsubexp(re);
+
+	regmatch* matches = new regmatch[subExpCount];
 
 	char* line;
 	while( (line=fgets(buffer,sizeof(buffer)-1,fd))!= 0)
 	{
-		uint64_t startAddress=0;
-		uint64_t endAddress=0;
-		int lineNumber=-1;
 		char* pEnd=0;
 
 		linesInFileCount++;
 
-		if (linesInFileCount == 68)
-		{
-			fixme++;
-		}
+		//execute a match on this line
+		retVal = re_exec(re,line,subExpCount,&matches[0]);
 
-		//run the regexec to execute a match on the line
-		retVal = regexec(&re,line,20,pmatch,0);
-		if (retVal != 0)
+		if (retVal < 1)
 		{
-			char errorBuffer[1024];
-			memset(errorBuffer,0,sizeof(errorBuffer));
-			regerror(retVal,&re,errorBuffer,sizeof(errorBuffer)-1);
-			fprintf(stderr,"ERROR running regexec on line %d (%s) '%s'\n",linesInFileCount,line,errorBuffer);
+			//failed to match this line
 			continue;
 		}
 
-		if ((pmatch[0].rm_so != -1)&&(pmatch[0].rm_eo != 0))
+		if (matches[1].begin != matches[1].end)
 		{
-			char* valueString = line + pmatch[0].rm_so;
-			*(line + pmatch[0].rm_eo) = 0;
-			startAddress = (uint64_t)strtoull(valueString,&pEnd,0);
+			char* valueString = line + matches[1].begin;
+			*(line + matches[1].end) = 0;
+			functionInfo.lowAddress = (uint64_t)strtoull(valueString,&pEnd,16);
 			if (pEnd ==valueString)
 				continue;
-			startAddress += addressBias;
+			functionInfo.lowAddress += addressBias;
 		}
 		else
 		{
 			//if you don't get the start address then you have nothing.
 			continue;
 		}
-		if ((pmatch[1].rm_so != -1)&&(pmatch[1].rm_eo != 0))
+		if (matches[2].begin != matches[2].end)
 		{
-			char* valueString = line + pmatch[1].rm_so;
-			*(line + pmatch[1].rm_eo) = 0;
-			uint64_t unitCount = (uint64_t)strtoull(valueString,&pEnd,0);
+			char* valueString = line + matches[2].begin;
+			*(line + matches[2].end) = 0;
+			uint64_t unitCount = (uint64_t)strtoull(valueString,&pEnd,16);
 			if (pEnd ==valueString)
 				continue;
-			endAddress = startAddress + unitCount - 1;
+			functionInfo.highAddress = functionInfo.lowAddress + unitCount - 1;
 		}
-		if ((pmatch[2].rm_so != -1)&&(pmatch[2].rm_eo != 0))
+		if (matches[3].begin != matches[3].end)
 		{
-			char* valueString = line + pmatch[2].rm_so;
-			*(line + pmatch[2].rm_eo) = 0;
-			functionName = valueString;
-		}
-		else
-		{
-			functionName = "";
-		}
-		if ((pmatch[3].rm_so != -1)&&(pmatch[3].rm_eo != 0))
-		{
-			char* valueString = line + pmatch[3].rm_so;
-			*(line + pmatch[3].rm_eo) = 0;
-			fileName = valueString;
+			char* valueString = line + matches[3].begin;
+			*(line + matches[3].end) = 0;
+			functionInfo.name = valueString;
+			functionInfo.name += ")";
 		}
 		else
 		{
-			fileName = "";
+			functionInfo.name = "";
 		}
-		if ((pmatch[4].rm_so != -1)&&(pmatch[4].rm_eo != 0))
+		if (matches[4].begin != matches[4].end)
 		{
-			char* valueString = line + pmatch[4].rm_so;
-			*(line + pmatch[4].rm_eo) = 0;
-			lineNumber = strtol(valueString,&pEnd,0);
+			char* valueString = line + matches[4].begin;
+			*(line + matches[4].end) = 0;
+			functionInfo.file = valueString;
+		}
+		else
+		{
+			functionInfo.file = "";
+		}
+		if (matches[5].begin != matches[5].end)
+		{
+			char* valueString = line + matches[5].begin;
+			*(line + matches[5].end) = 0;
+			functionInfo.line = strtol(valueString,&pEnd,0);
 			if (pEnd ==valueString)
-				lineNumber = -1;
+				functionInfo.line = -1;
+		}
+		else
+		{
+			functionInfo.line = -1;
 		}
 
 		lineCount++;
 
-		//todo move construction of this out of this loop
-		FunctionInfo info(startAddress,endAddress,functionName,fileName,lineNumber);
+		//printf("line:%u adding:%s\n",linesInFileCount,functionInfo().c_str());
 
-		rangeLookup.insertRange(startAddress,endAddress,info);
+		rangeLookup.insertRange(functionInfo.lowAddress,functionInfo.highAddress,functionInfo);
 	}
-	regfree(&re);
+	re_free(re);
+
+	rangeLookup.dump();
+
 	return true;
 }
 
@@ -300,6 +292,14 @@ void NMSymbolExtractor::test() {
 	testAddress(0x804a815-1);
 	testAddress(0x804a815);
 	testAddress(0x804a815+1);
+
+
+	testAddress(0x080496E0+4); //0x080496E0-0x08049889 adjacent(card_class*, card_class*) /home/joe/trace/CIFT/demo/parallel_speed/Debug/../main.cpp:55
+	testAddress(0x0804A6CA);//line:87 adding:0x0804A5F0-0x0804A6CA threaded_player(void*) /home/joe/trace/CIFT/demo/parallel_speed/Debug/../main.cpp:147
+	testAddress(0x0804A6CB);
+	//line:88 adding:0x0804A6D0-0x0804A765 random(unsigned int) /home/joe/trace/CIFT/demo/parallel_speed/Debug/../random.cpp:5
+	testAddress(0x0804AB40+7);//line:95 adding:0x0804AB40-0x0804B154 stack_of_cards_class::print() /home/joe/trace/CIFT/demo/parallel_speed/Debug/../stack_of_cards.cpp:83
+	//line:104 adding:0x0804B4D0-0x0804B525 stack_of_cards_class::stack_of_cards_class() /home/joe/trace/CIFT/demo/parallel_speed/Debug/../stack_of_cards.cpp:6
 
 	//testAddress(0x080490f1);
 
