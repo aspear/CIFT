@@ -251,7 +251,7 @@ bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias
 	}
 	re_free(re);
 
-	rangeLookup.dump();
+	//rangeLookup.dump();
 
 	return true;
 }
