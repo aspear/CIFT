@@ -75,7 +75,7 @@ const char* usage = "cift-dump <filename>\n";
 
 int cift_dump_plain_to_stdout( const char* filename );
 
-NMSymbolExtractor symbolExtractor;
+SymbolLookup symbolExtractor;
 
 int main(int argc, char* argv[])
 {

@@ -32,20 +32,20 @@
 
 using namespace std;
 
-NMSymbolExtractor::NMSymbolExtractor()
+SymbolLookup::SymbolLookup()
 {
 }
-NMSymbolExtractor::~NMSymbolExtractor()
+SymbolLookup::~SymbolLookup()
 {
 }
 
-bool NMSymbolExtractor::init(){
+bool SymbolLookup::init(){
 
 	rangeLookup.clear();
 	return true;
 }
 
-bool NMSymbolExtractor::loadSymbolsForExecutable( String executablePath, uint64_t addressBias/*=0*/ )
+bool SymbolLookup::loadSymbolsForExecutable( String executablePath, uint64_t addressBias/*=0*/ )
 {
 	if (!generateNMSymbolFile(executablePath))
 		return false;
@@ -60,7 +60,7 @@ bool NMSymbolExtractor::loadSymbolsForExecutable( String executablePath, uint64_
 /*
  * nm --demangle -a -l -S --numeric-sort ./parallel_speed > ./parallel_speed.nmsymbols
  */
-bool NMSymbolExtractor::generateNMSymbolFile( String executablePath ) {
+bool SymbolLookup::generateNMSymbolFile( String executablePath ) {
 	FILE* fd = fopen(executablePath.c_str(),"r");
 	if (!fd)
 	{
@@ -88,7 +88,7 @@ bool NMSymbolExtractor::generateNMSymbolFile( String executablePath ) {
  * 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
  * lowaddr \t highaddr \t function \t file \t line \n
  */
-bool NMSymbolExtractor::parseSymbolFile(String symbolFilePath) {
+bool SymbolLookup::parseSymbolFile(String symbolFilePath) {
 
 	FILE* fd = fopen(symbolFilePath.c_str(),"rt");
 	if (!fd)
@@ -136,7 +136,7 @@ bool NMSymbolExtractor::parseSymbolFile(String symbolFilePath) {
 	return true;
 }
 
-bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias/*=0*/ )
+bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias/*=0*/ )
 {
 	int retVal;
 	int lineCount = 0;
@@ -256,8 +256,7 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 	return true;
 }
 
-
-String NMSymbolExtractor::getStringForAddress( uint64_t address )
+String SymbolLookup::getStringForAddress( uint64_t address )
 {
 	char buffer[1024];
 	FunctionInfo* pInfo = rangeLookup.findRange(address);
@@ -267,20 +266,20 @@ String NMSymbolExtractor::getStringForAddress( uint64_t address )
 	}
 	else
 	{
-		snprintf(buffer,sizeof(buffer)-1,"0x%llX",address);
+		snprintf(buffer,sizeof(buffer)-1,"?");
 	}
 	buffer[sizeof(buffer)-1]=0;
 	return String(buffer);
 }
 
-void NMSymbolExtractor::testAddress( uint64_t address )
+void SymbolLookup::testAddress( uint64_t address )
 {
 	String rangeString = getStringForAddress(address);
 
 	printf( "0x%08llX -> %s\n",address,rangeString.c_str());
 }
 
-void NMSymbolExtractor::test() {
+void SymbolLookup::test() {
 
 	//10) 804a770-804a7bc  function='stack_of_cards_class::size()'  file='/home/joe/trace/CIFT/demo/parallel_speed/Debug/../stack_of_cards.cpp':236
 	//11) 804a7c0-804a815  function='stack_of_cards_class::last_card()'  file='/home/joe/trace/CIFT/demo/parallel_speed/Debug/../stack_of_cards.cpp':68

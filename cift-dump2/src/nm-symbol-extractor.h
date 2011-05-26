@@ -36,6 +36,7 @@ using namespace std;
 
 typedef string String;
 
+/** a class that wraps all info for functions.  address range, name, file */
 class FunctionInfo {
 public:
 	FunctionInfo()
@@ -69,50 +70,63 @@ public:
 	int    		line;
 };
 
-class NMSymbolExtractor {
+/**
+* a utility class that reads in symbols for a given application and
+* then allows looking up function names by address.  the utility
+* uses the symbols dumped by the Linux "nm" utility function which is
+* effectively ELF symtab
+*/
+class SymbolLookup
+{
+	public:
+		SymbolLookup();
+		~SymbolLookup();
 
-private:
-	RangeLookup<uint64_t,FunctionInfo> rangeLookup;
+		/** clear the current symbol mappings and get ready for symbols to be loaded.
+		* this should be followed with 1 or more calls to loadSymbolsForExecutable
+		*/
+		bool init(void);
 
-public:
-	NMSymbolExtractor();
-	~NMSymbolExtractor();
+		/**
+		* use nm utility to dump the exported symbols for the given executable and read these symbols
+		* into an internal lookup data structure.
+		* @param executablePath full path to the executable
+		* @param addressBias optional bias to add to each extracted address
+		*/
+		bool loadSymbolsForExecutable( String executablePath, uint64_t addressBias=0 );
 
-	/** clear the current symbol mappings and get ready for symbols to be loaded.
-	* this should be followed with 1 or more calls to loadSymbolsForExecutable
-	*/
-	bool init(void);
+		/* called to spawn nm to dump the symbols to a file
+		 * nm --demangle -a -l -S --numeric-sort ./parallel_speed > ./parallel_speed.nmsymbols
+		 */
+		bool generateNMSymbolFile( String executablePath );
 
-	/**
-	* use nm utility to dump the exported symbols for the given executable and read these symbols
-	* into an internal lookup data structure.
-	* @param executablePath full path to the executable
-	* @param addressBias optional bias to add to each extracted address
-	*/
-	bool loadSymbolsForExecutable( String executablePath, uint64_t addressBias=0 );
+		/*
+		 * utility function to parse a symbol dump created by the generateNMSymbolFile call.
+		 * format:
+		 * 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
+		 */
+		bool parseNMSymbolFile(String symbolFilePath, uint64_t addressBias=0 );
 
-	/* called to spawn nm to dump the symbols to a file
-	 * nm --demangle -a -l -S --numeric-sort ./parallel_speed > ./parallel_speed.nmsymbols
-	 */
-	bool generateNMSymbolFile( String executablePath );
+		/**
+		* utility function that allows you to format a string for a given address.
+		* the string will come with with "function+<offset from function start>" as the format.
+		* if the address does not correspond to a known function, a question mark is returned
+		*/
+		String getStringForAddress( uint64_t address );
 
-	/*
-	 * assume overload assumes that the format is:
-	 * 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
-	 * lowaddr \t highaddr \t function \t file \t line \n
-	 */
-	bool parseSymbolFile(String symbolFilePath);
+		void testAddress( uint64_t address );
+		void test();
 
-	/*
-	* 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
-	*/
-	bool parseNMSymbolFile(String symbolFilePath, uint64_t addressBias=0 );
+	protected:
 
-	String getStringForAddress( uint64_t address );
+		/*
+		* assume overload assumes that the format of the file is:
+		* 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
+		* lowaddr \t highaddr \t function \t file \t line \n
+		*/
+		bool parseSymbolFile(String symbolFilePath);
 
-	void testAddress( uint64_t address );
-
-	void test();
+		RangeLookup<uint64_t,FunctionInfo> rangeLookup;
 };
 
 #endif
