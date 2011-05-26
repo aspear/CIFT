@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 
     symbolExtractor.loadSymbolsForExecutable( argv[2] );
 
-    //symbolExtractor.test();
+    symbolExtractor.test();
 
     return cift_dump_plain_to_stdout( argv[1] );
 }

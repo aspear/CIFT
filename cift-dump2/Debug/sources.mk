@@ -23,5 +23,7 @@ C_UPPER_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+src/re2 \
+src/re2/stl \
 src \
 

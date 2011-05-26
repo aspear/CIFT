@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <regex.h> // POSIX regex support
+#include "re2/regexp.h"
 
 using namespace std;
 
@@ -138,6 +138,7 @@ bool NMSymbolExtractor::parseSymbolFile(String symbolFilePath) {
 
 bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias/*=0*/ )
 {
+	int retVal;
 	int lineCount = 0;
 	int linesInFileCount=0;
 
@@ -154,13 +155,25 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 	// lines are formatted like this:
 	// 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
 
-	if(regcomp(&re,"^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)", REG_EXTENDED|REG_NOSUB) != 0)
+	//this pattern works in java
+	//const char* linePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
+
+	//this pattern works in java
+	const char* linePattern = "([0-9A-Fa-f]+)[ ]+([0-9A-Fa-f]+)";//[:space:]+T";//[:space:]+([^\\)]+)\\)[:space:]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
+
+	retVal = regcomp(&re,linePattern, REG_EXTENDED );//| RE_SYNTAX_EGREP);
+	if (retVal!= 0)
 	{
+		char errorBuffer[1024];
+		memset(errorBuffer,0,sizeof(errorBuffer));
+		regerror(retVal,&re,errorBuffer,sizeof(errorBuffer)-1);
+		fprintf(stderr,"ERROR running regcomp on (%s) '%s'\n",linePattern,errorBuffer);
 		return false;
 	}
 
 	String functionName;
 	String fileName;
+	volatile int fixme=0;
 
 	char* line;
 	while( (line=fgets(buffer,sizeof(buffer)-1,fd))!= 0)
@@ -169,22 +182,26 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 		uint64_t endAddress=0;
 		int lineNumber=-1;
 		char* pEnd=0;
-		int retVal;
 
 		linesInFileCount++;
 
+		if (linesInFileCount == 68)
+		{
+			fixme++;
+		}
+
 		//run the regexec to execute a match on the line
-		retVal = regexec(&re,line,20,pmatch,REG_EXTENDED);
+		retVal = regexec(&re,line,20,pmatch,0);
 		if (retVal != 0)
 		{
 			char errorBuffer[1024];
 			memset(errorBuffer,0,sizeof(errorBuffer));
 			regerror(retVal,&re,errorBuffer,sizeof(errorBuffer)-1);
-			fprintf(stderr,"ERROR running regexec '%s'\n",errorBuffer);
+			fprintf(stderr,"ERROR running regexec on line %d (%s) '%s'\n",linesInFileCount,line,errorBuffer);
 			continue;
 		}
 
-		if (pmatch[0].rm_so != -1)
+		if ((pmatch[0].rm_so != -1)&&(pmatch[0].rm_eo != 0))
 		{
 			char* valueString = line + pmatch[0].rm_so;
 			*(line + pmatch[0].rm_eo) = 0;
@@ -193,7 +210,12 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 				continue;
 			startAddress += addressBias;
 		}
-		if (pmatch[1].rm_so != -1)
+		else
+		{
+			//if you don't get the start address then you have nothing.
+			continue;
+		}
+		if ((pmatch[1].rm_so != -1)&&(pmatch[1].rm_eo != 0))
 		{
 			char* valueString = line + pmatch[1].rm_so;
 			*(line + pmatch[1].rm_eo) = 0;
@@ -202,7 +224,7 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 				continue;
 			endAddress = startAddress + unitCount - 1;
 		}
-		if (pmatch[2].rm_so != -1)
+		if ((pmatch[2].rm_so != -1)&&(pmatch[2].rm_eo != 0))
 		{
 			char* valueString = line + pmatch[2].rm_so;
 			*(line + pmatch[2].rm_eo) = 0;
@@ -212,7 +234,7 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 		{
 			functionName = "";
 		}
-		if (pmatch[3].rm_so != -1)
+		if ((pmatch[3].rm_so != -1)&&(pmatch[3].rm_eo != 0))
 		{
 			char* valueString = line + pmatch[3].rm_so;
 			*(line + pmatch[3].rm_eo) = 0;
@@ -222,7 +244,7 @@ bool NMSymbolExtractor::parseNMSymbolFile(String symbolFilePath, uint64_t addres
 		{
 			fileName = "";
 		}
-		if (pmatch[4].rm_so != -1)
+		if ((pmatch[4].rm_so != -1)&&(pmatch[4].rm_eo != 0))
 		{
 			char* valueString = line + pmatch[4].rm_so;
 			*(line + pmatch[4].rm_eo) = 0;
