@@ -91,9 +91,9 @@ int main(int argc, char* argv[])
     String binFile = argv[1];
     String symbolFile = argv[2];
 
-    symbolExtractor.init( argv[2] );
+    symbolExtractor.loadSymbolsForExecutable( argv[2] );
 
-    symbolExtractor.test();
+    //symbolExtractor.test();
 
     return cift_dump_plain_to_stdout( argv[1] );
 }
@@ -116,6 +116,7 @@ int cift_dump_plain_to_stdout( const char* filename )
     size_t  totalFileLength;
     struct stat statBuffer;
     int status;
+    map<uint32_t,int32_t> threadToStackLevelMap;
 
     CIFT_EVENT_BUFFER* cift_event_buffer;
 
@@ -227,21 +228,54 @@ int cift_dump_plain_to_stdout( const char* filename )
     {
         pEvent = &(cift_event_buffer->event_buffer[index]);
 
-        //TODO implement a map that keeps track of call stack level for individual threads/contexts
+        uint32_t eventId     = ExtractU32(&pEvent->event_id);
+        uint32_t eventThread = (unsigned)ExtractU32(&pEvent->context);
+        uint64_t timeStamp   = (uint64_t)ExtractU64(&pEvent->timestamp);
+        uint64_t func_called = (uint64_t)ExtractUINTPTR( &pEvent->func_called );
+        uint64_t called_from = (uint64_t)ExtractUINTPTR( &pEvent->called_from );
+        uint64_t event_count = (uint64_t)ExtractUINTPTR( &pEvent->event_count );
 
-        //TODO something smart with pEvent->event_id.  If it is 0, that means that the event was in the
-        //middle of being written and is not complete and should be dropped
+        int currentThreadCallStacklevel;
+
+        map<uint32_t,int32_t>::iterator i = threadToStackLevelMap.find(eventThread);
+        if (i == threadToStackLevelMap.end())
+        {
+        	threadToStackLevelMap[eventThread] = currentThreadCallStacklevel = 0;
+        }
+        else
+        {
+        	if (eventId == CIFT_EVENT_TYPE_FUNC_ENTER)
+        		currentThreadCallStacklevel = ++(i->second);
+        	else
+        		currentThreadCallStacklevel = --(i->second);
+        }
 
         eventsPrinted++;
-        printf("%llu,%llu,0x%08X,%u,0x%08llX,0x%08llX,%llu\n",
-                (uint64_t)index,
-                (uint64_t)ExtractU64(&pEvent->timestamp),
-                (unsigned)ExtractU32(&pEvent->context),
-                (unsigned)ExtractU32(&pEvent->event_id),
-                (uint64_t)ExtractUINTPTR( &pEvent->func_called ),
-                (uint64_t)ExtractUINTPTR( &pEvent->called_from ),
-                (uint64_t)ExtractUINTPTR( &pEvent->event_count )
-             );
+
+        if (eventId == CIFT_EVENT_TYPE_FUNC_ENTER)
+        {
+        	printf("%llu,0x%08X,+,level=%02d 0x%08llX %s -> 0x%08llX %s\n",
+        	                        (uint64_t)timeStamp,
+        	                        (unsigned)eventThread,
+        	                        currentThreadCallStacklevel,
+        	                        (uint64_t)called_from,
+									symbolExtractor.getStringForAddress(called_from).c_str(),
+									(uint64_t)func_called,
+        	                        symbolExtractor.getStringForAddress(func_called).c_str()
+        	                     );
+        }
+        else
+        {
+        	printf("%llu,0x%08X,-,level=%02d 0x%08llX %s -> 0x%08llX %s\n",
+        	                        (uint64_t)timeStamp,
+        	                        (unsigned)eventThread,
+        	                        currentThreadCallStacklevel,
+        	                        (uint64_t)called_from,
+									symbolExtractor.getStringForAddress(called_from).c_str(),
+									(uint64_t)func_called,
+									symbolExtractor.getStringForAddress(func_called).c_str()
+        	                     );
+        }
 
         index = (index + 1) % max_event_count;//increment/wrap the index
     }

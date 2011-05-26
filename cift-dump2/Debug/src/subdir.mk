@@ -4,13 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../src/cift-dump2.cpp 
+../src/cift-dump2.cpp \
+../src/nm-symbol-extractor.cpp 
 
 OBJS += \
-./src/cift-dump2.o 
+./src/cift-dump2.o \
+./src/nm-symbol-extractor.o 
 
 CPP_DEPS += \
-./src/cift-dump2.d 
+./src/cift-dump2.d \
+./src/nm-symbol-extractor.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
