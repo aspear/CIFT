@@ -70,16 +70,16 @@ inline uint64_t ExtractUINTPTR( volatile void* addr )
         return ExtractU64(addr);
 }
 
-const char* usage = "cift-dump <filename>\n";
+const char* usage = "usage: cift-dump <path to cift-bin file> <path to executable>\n";
 
 
 int cift_dump_plain_to_stdout( const char* filename );
 
-SymbolLookup symbolExtractor;
+SymbolLookup symbolLookup;
 
 int main(int argc, char* argv[])
 {
-    printf("CIFT dumper/convertor version 0.1\n");
+    printf("CIFT dumper/converter version 0.2\n");
 
     if (argc < 2)
     {
@@ -87,13 +87,14 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     //argv[1] is the bin file
-    //argv2 is the symbol file
+    //argv[2] is the symbol file
+
     String binFile = argv[1];
     String symbolFile = argv[2];
 
-    symbolExtractor.loadSymbolsForExecutable( argv[2] );
+    symbolLookup.loadSymbolsForExecutable( argv[2] );
 
-    symbolExtractor.test();
+    //symbolLookup.test();
 
     return cift_dump_plain_to_stdout( argv[1] );
 }
@@ -233,7 +234,7 @@ int cift_dump_plain_to_stdout( const char* filename )
         uint64_t timeStamp   = (uint64_t)ExtractU64(&pEvent->timestamp);
         uint64_t func_called = (uint64_t)ExtractUINTPTR( &pEvent->func_called );
         uint64_t called_from = (uint64_t)ExtractUINTPTR( &pEvent->called_from );
-        uint64_t event_count = (uint64_t)ExtractUINTPTR( &pEvent->event_count );
+        //uint64_t event_count = (uint64_t)ExtractUINTPTR( &pEvent->event_count );
 
         int currentThreadCallStacklevel;
 
@@ -259,9 +260,9 @@ int cift_dump_plain_to_stdout( const char* filename )
         	                        (unsigned)eventThread,
         	                        currentThreadCallStacklevel,
         	                        (uint64_t)called_from,
-									symbolExtractor.getStringForAddress(called_from).c_str(),
+									symbolLookup.getStringForAddress(called_from).c_str(),
 									(uint64_t)func_called,
-        	                        symbolExtractor.getStringForAddress(func_called).c_str()
+        	                        symbolLookup.getStringForAddress(func_called).c_str()
         	                     );
         }
         else
@@ -270,10 +271,10 @@ int cift_dump_plain_to_stdout( const char* filename )
         	                        (uint64_t)timeStamp,
         	                        (unsigned)eventThread,
         	                        currentThreadCallStacklevel,
-        	                        (uint64_t)called_from,
-									symbolExtractor.getStringForAddress(called_from).c_str(),
-									(uint64_t)func_called,
-									symbolExtractor.getStringForAddress(func_called).c_str()
+        	                        (uint64_t)func_called,
+									symbolLookup.getStringForAddress(func_called).c_str(),
+									(uint64_t)called_from,
+									symbolLookup.getStringForAddress(called_from).c_str()
         	                     );
         }
 

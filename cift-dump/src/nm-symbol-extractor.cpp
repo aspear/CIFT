@@ -83,59 +83,6 @@ bool SymbolLookup::generateNMSymbolFile( String executablePath ) {
 	return retVal == 0;
 }
 
-/*
- * assume overload assumes that the format of the file is:
- * 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
- * lowaddr \t highaddr \t function \t file \t line \n
- */
-bool SymbolLookup::parseSymbolFile(String symbolFilePath) {
-
-	FILE* fd = fopen(symbolFilePath.c_str(),"rt");
-	if (!fd)
-	{
-		return false;
-	}
-
-	char buffer[1024];
-
-	char* line;
-	while( (line=fgets(buffer,sizeof(buffer)-1,fd))!= 0)
-	{
-		uint64_t startAddress=0;
-		uint64_t endAddress=0;
-		String functionName;
-		String fileName;
-		int lineNumber=-1;
-		char* pEnd=0;
-
-		char* tok = strtok(line,"\t");
-
-		startAddress = (uint64_t)strtoull(tok,&pEnd,0);
-
-		tok = strtok(NULL,"\t");
-		endAddress = (uint64_t)strtoull(tok,&pEnd,0);
-		tok = strtok(NULL,"\t");
-		if (tok){
-			functionName = tok;
-
-			tok = strtok(NULL,"\t");
-			if (tok){
-				fileName = tok;
-			}
-			tok = strtok(NULL,"\t");
-			if (tok){
-				lineNumber = strtol(tok,&pEnd,0);
-			}
-		}
-
-		FunctionInfo info(startAddress,endAddress,functionName,fileName,lineNumber);
-
-		rangeLookup.insertRange(startAddress,endAddress,info);
-	}
-	fclose(fd);
-	return true;
-}
-
 bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias/*=0*/ )
 {
 	int retVal;
@@ -149,24 +96,24 @@ bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias
 	}
 
 	char buffer[1024];
-	regexp* re=0;
+	regexp* re_full_args=0;
 
 	//this pattern works in java but fails with stock POSIX regcomp,regexec.  I punted and used a library that
 	//I know works
 	// lines are formatted like this:
 	// 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
-	const char* linePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
+	const char* fullFuncArgslinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
 
-	retVal =  re_comp(&re,linePattern);
+	retVal =  re_comp(&re_full_args,fullFuncArgslinePattern);
 	if (retVal< 0)
 	{
-		fprintf(stderr,"ERROR failed to compile regex '%s'\n",linePattern);
+		fprintf(stderr,"ERROR failed to compile regex '%s'\n",fullFuncArgslinePattern);
 		return false;
 	}
 
 	FunctionInfo functionInfo;
 
-	unsigned subExpCount = re_nsubexp(re);
+	unsigned subExpCount = re_nsubexp(re_full_args);
 
 	regmatch* matches = new regmatch[subExpCount];
 
@@ -178,7 +125,7 @@ bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias
 		linesInFileCount++;
 
 		//execute a match on this line
-		retVal = re_exec(re,line,subExpCount,&matches[0]);
+		retVal = re_exec(re_full_args,line,subExpCount,&matches[0]);
 
 		if (retVal < 1)
 		{
@@ -249,7 +196,7 @@ bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias
 
 		rangeLookup.insertRange(functionInfo.lowAddress,functionInfo.highAddress,functionInfo);
 	}
-	re_free(re);
+	re_free(re_full_args);
 
 	//rangeLookup.dump();
 
@@ -310,3 +257,55 @@ void SymbolLookup::test() {
 
 }
 
+/*
+ * assume overload assumes that the format of the file is:
+ * 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
+ * lowaddr \t highaddr \t function \t file \t line \n
+ */
+bool SymbolLookup::parseSymbolFile(String symbolFilePath) {
+
+	FILE* fd = fopen(symbolFilePath.c_str(),"rt");
+	if (!fd)
+	{
+		return false;
+	}
+
+	char buffer[1024];
+
+	char* line;
+	while( (line=fgets(buffer,sizeof(buffer)-1,fd))!= 0)
+	{
+		uint64_t startAddress=0;
+		uint64_t endAddress=0;
+		String functionName;
+		String fileName;
+		int lineNumber=-1;
+		char* pEnd=0;
+
+		char* tok = strtok(line,"\t");
+
+		startAddress = (uint64_t)strtoull(tok,&pEnd,0);
+
+		tok = strtok(NULL,"\t");
+		endAddress = (uint64_t)strtoull(tok,&pEnd,0);
+		tok = strtok(NULL,"\t");
+		if (tok){
+			functionName = tok;
+
+			tok = strtok(NULL,"\t");
+			if (tok){
+				fileName = tok;
+			}
+			tok = strtok(NULL,"\t");
+			if (tok){
+				lineNumber = strtol(tok,&pEnd,0);
+			}
+		}
+
+		FunctionInfo info(startAddress,endAddress,functionName,fileName,lineNumber);
+
+		rangeLookup.insertRange(startAddress,endAddress,info);
+	}
+	fclose(fd);
+	return true;
+}
