@@ -45,7 +45,7 @@ bool SymbolLookup::init(){
 	return true;
 }
 
-bool SymbolLookup::loadSymbolsForExecutable( String executablePath, uint64_t addressBias/*=0*/ )
+bool SymbolLookup::loadSymbolsForExecutable( const String& executablePath, uint64_t addressBias/*=0*/ )
 {
 	if (!generateNMSymbolFile(executablePath))
 		return false;
@@ -60,7 +60,7 @@ bool SymbolLookup::loadSymbolsForExecutable( String executablePath, uint64_t add
 /*
  * nm --demangle -a -l -S --numeric-sort ./parallel_speed > ./parallel_speed.nmsymbols
  */
-bool SymbolLookup::generateNMSymbolFile( String executablePath ) {
+bool SymbolLookup::generateNMSymbolFile( const String& executablePath ) {
 	FILE* fd = fopen(executablePath.c_str(),"r");
 	if (!fd)
 	{
@@ -83,7 +83,7 @@ bool SymbolLookup::generateNMSymbolFile( String executablePath ) {
 	return retVal == 0;
 }
 
-bool SymbolLookup::parseNMSymbolFile(String symbolFilePath, uint64_t addressBias/*=0*/ )
+bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t addressBias/*=0*/ )
 {
 	int retVal;
 	int lineCount = 0;
@@ -262,7 +262,7 @@ void SymbolLookup::test() {
  * 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
  * lowaddr \t highaddr \t function \t file \t line \n
  */
-bool SymbolLookup::parseSymbolFile(String symbolFilePath) {
+bool SymbolLookup::parseSymbolFile( const String& symbolFilePath) {
 
 	FILE* fd = fopen(symbolFilePath.c_str(),"rt");
 	if (!fd)

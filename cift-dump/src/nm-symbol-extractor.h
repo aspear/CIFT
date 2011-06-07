@@ -62,7 +62,7 @@ public:
 		return String(buffer);
 	}
 
-	//yeah public members is bad form.
+	//yeah, public members is bad form, sorry.
 	uint64_t 	lowAddress;
 	uint64_t 	highAddress;
 	String 		name;
@@ -79,8 +79,9 @@ public:
 class SymbolLookup
 {
 	public:
-		SymbolLookup();
-		~SymbolLookup();
+
+		SymbolLookup(void);
+		~SymbolLookup(void);
 
 		/** clear the current symbol mappings and get ready for symbols to be loaded.
 		* this should be followed with 1 or more calls to loadSymbolsForExecutable
@@ -93,19 +94,7 @@ class SymbolLookup
 		* @param executablePath full path to the executable
 		* @param addressBias optional bias to add to each extracted address
 		*/
-		bool loadSymbolsForExecutable( String executablePath, uint64_t addressBias=0 );
-
-		/* called to spawn nm to dump the symbols to a file
-		 * nm --demangle -a -l -S --numeric-sort ./parallel_speed > ./parallel_speed.nmsymbols
-		 */
-		bool generateNMSymbolFile( String executablePath );
-
-		/*
-		 * utility function to parse a symbol dump created by the generateNMSymbolFile call.
-		 * format:
-		 * 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
-		 */
-		bool parseNMSymbolFile(String symbolFilePath, uint64_t addressBias=0 );
+		bool loadSymbolsForExecutable( const String& executablePath, uint64_t addressBias=0 );
 
 		/**
 		* utility function that allows you to format a string for a given address.
@@ -114,17 +103,32 @@ class SymbolLookup
 		*/
 		String getStringForAddress( uint64_t address );
 
+		//TODO remove these
 		void testAddress( uint64_t address );
 		void test();
 
 	protected:
 
+		/** called to spawn nm to dump the symbols to a file
+		* nm --demangle -a -l -S --numeric-sort ./parallel_speed > ./parallel_speed.nmsymbols
+		*/
+		bool generateNMSymbolFile( const String& executablePath );
+
+		/**
+		* utility function to parse a symbol dump created by the generateNMSymbolFile call.
+		* format:
+		* 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
+		*/
+		bool parseNMSymbolFile( const String& symbolFilePath, uint64_t addressBias=0 );
+
 		/*
-		* assume overload assumes that the format of the file is:
+		* old format overload. assumes that the format of the file is:
 		* 0x8048ad0	0x8048b1b	card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp	32
 		* lowaddr \t highaddr \t function \t file \t line \n
 		*/
-		bool parseSymbolFile(String symbolFilePath);
+		bool parseSymbolFile( const String& symbolFilePath);
+
+	protected:
 
 		RangeLookup<uint64_t,FunctionInfo> rangeLookup;
 };
