@@ -198,9 +198,29 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 	}
 	re_free(re_full_args);
 
-	//rangeLookup.dump();
-
 	return true;
+}
+
+struct SymbolDumpFunctor
+{
+  unsigned count;
+  SymbolDumpFunctor():count(0)
+  {
+  }
+
+  void operator()( const RangeLookup<uint64_t,FunctionInfo>::range_item& item )
+  {
+	    printf("%03d) %s\n",count++,item.value.toString().c_str());
+  }
+};
+
+void SymbolLookup::dumpSymbols()
+{
+	printf("********* RANGE TABLE ***************\n");
+	SymbolDumpFunctor f;
+	f.count=0;
+	rangeLookup.for_each(f);
+	printf("********* END RANGE TABLE ***************\n");
 }
 
 String SymbolLookup::getStringForAddress( uint64_t address )

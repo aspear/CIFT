@@ -94,6 +94,9 @@ int main(int argc, char* argv[])
 
     symbolLookup.loadSymbolsForExecutable( argv[2] );
 
+    //TODO make this programatic?
+    symbolLookup.dumpSymbols();
+
     //symbolLookup.test();
 
     return cift_dump_plain_to_stdout( argv[1] );

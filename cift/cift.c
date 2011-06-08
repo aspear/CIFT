@@ -76,7 +76,7 @@ void __cyg_profile_func_exit (void *this_fn, void *call_site)
 static void cift_default_init(void)
     __attribute__ ((no_instrument_function));
 
-#if ((CIFT_HAVE_FILEIO)&&(CIFT_ATEXIT_DUMP_LOG))
+#if ((CIFT_HAVE_FILEIO)&&((CIFT_ATEXIT_DUMP_BIN_LOG) || (CIFT_ATEXIT_DUMP_TEXT_LOG)))
     void cift_file_dump_atexit_handler(void)
         __attribute__ ((no_instrument_function));
 #endif
@@ -189,6 +189,7 @@ static inline void cift_log_function_event( uint32_t event_id, void *func_called
     }
 }
 
+// the actual GCC hook called at function enter
 void __cyg_profile_func_enter(void *func_called, void* called_from)
 {
     if(cift_enabled)
@@ -197,6 +198,7 @@ void __cyg_profile_func_enter(void *func_called, void* called_from)
     }
 }
 
+// the actual GCC hook called at function exit
 void __cyg_profile_func_exit(void* func_called, void* called_from)
 {
     if(cift_enabled)
@@ -269,7 +271,7 @@ CIFT_BOOL cift_configure( CIFT_COUNT totalBytes, CIFT_BUFFER_MODE bufferMode )
 
     // if configured to do so, tell the C library to call our exit handler
     // function to flush the data to disk when the application exits
-    #if ((CIFT_HAVE_FILEIO)&&(CIFT_ATEXIT_DUMP_LOG))
+    #if ((CIFT_HAVE_FILEIO)&&((CIFT_ATEXIT_DUMP_BIN_LOG) || (CIFT_ATEXIT_DUMP_TEXT_LOG)))
     atexit(cift_file_dump_atexit_handler);
     #endif
 

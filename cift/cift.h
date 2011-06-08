@@ -64,15 +64,25 @@ extern "C" {
 * CFT compile time configuration
 *******************************************************************************/
 
-//enable the optional feature to dump the log to files
+//enable the optional feature to dump the log to files.  this enables both
+//the text and binary dumping routines
 #ifndef CIFT_HAVE_FILEIO
 #define CIFT_HAVE_FILEIO 1
 #endif
 
-// by default if the FILEIO is enabled the log is dumped to a file
-// when the application exits.  this is really just for ease of use
-#ifndef CIFT_ATEXIT_DUMP_LOG
-#define CIFT_ATEXIT_DUMP_LOG CIFT_HAVE_FILEIO
+// if true, dump a BINARY dump of the buffered events at application exit.  Note
+// that it is this binary dump that the cift-dump utility consumes.
+// only applicable if CIFT_HAVE_FILEIO is true
+#ifndef CIFT_ATEXIT_DUMP_BIN_LOG
+#define CIFT_ATEXIT_DUMP_BIN_LOG CIFT_HAVE_FILEIO
+#endif
+
+// if true, dump a TEXT dump of the buffered events at application exit.
+// only applicable if CIFT_HAVE_FILEIO is true.  this defaults to disabled
+// as the binary dump and using cift-dump is the preferred method (since it
+// can also correlate addresses with symbols and such)
+#ifndef CIFT_ATEXIT_DUMP_TEXT_LOG
+#define CIFT_ATEXIT_DUMP_TEXT_LOG 0
 #endif
 
 /** configuration of whether or not tracing is enabled immediately by default. Note that

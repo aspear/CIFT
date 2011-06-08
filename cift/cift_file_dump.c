@@ -28,7 +28,7 @@
 */
 
 #include "cift.h"
-#include <stdio.h>//fopen,fwrite
+#include <stdio.h>  //fopen,fwrite
 #include <stddef.h> //offsetof
 
 #if (CIFT_HAVE_FILEIO)
@@ -66,17 +66,17 @@ CIFT_COUNT cift_dump_to_text_file( const char* outputFile )
 
     fprintf(fd,"******************************************************************************\n");
     fprintf(fd,"* magic                = %c %c %c %c\n",cift_event_buffer->magic[0],cift_event_buffer->magic[1],cift_event_buffer->magic[2],cift_event_buffer->magic[3]);
-    fprintf(fd,"* endian              = %u\n",(unsigned)cift_event_buffer->endian);
-    fprintf(fd,"* addr_bytes          = %u\n",(unsigned)cift_event_buffer->addr_bytes);
-    fprintf(fd,"* cift_count_bytes    = %u\n",(unsigned)cift_event_buffer->cift_count_bytes);
-    fprintf(fd,"* total_bytes         = %llu\n",(uint64_t)cift_event_buffer->total_bytes);
-    fprintf(fd,"* init_timestamp      = %llu\n",(uint64_t)cift_event_buffer->init_timestamp);
-    fprintf(fd,"* buffer_mode         = %u\n",cift_event_buffer->buffer_mode);
-    fprintf(fd,"* max_event_count     = %llu\n",(uint64_t)cift_event_buffer->max_event_count);
+    fprintf(fd,"* endian               = %u\n",(unsigned)cift_event_buffer->endian);
+    fprintf(fd,"* addr_bytes           = %u\n",(unsigned)cift_event_buffer->addr_bytes);
+    fprintf(fd,"* cift_count_bytes     = %u\n",(unsigned)cift_event_buffer->cift_count_bytes);
+    fprintf(fd,"* total_bytes          = %llu\n",(uint64_t)cift_event_buffer->total_bytes);
+    fprintf(fd,"* init_timestamp       = %llu\n",(uint64_t)cift_event_buffer->init_timestamp);
+    fprintf(fd,"* buffer_mode          = %u\n",cift_event_buffer->buffer_mode);
+    fprintf(fd,"* max_event_count      = %llu\n",(uint64_t)cift_event_buffer->max_event_count);
     fprintf(fd,"* total_events_added   = %llu\n",(uint64_t)cift_event_buffer->total_events_added);
     fprintf(fd,"* total_events_dropped = %llu\n",(uint64_t)cift_event_buffer->total_events_dropped);
-    fprintf(fd,"* next_event_index    = %llu\n",(uint64_t)cift_event_buffer->next_event_index);
-    fprintf(fd,"* sizeof(CIFT_EVENT)=%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
+    fprintf(fd,"* next_event_index     = %llu\n",(uint64_t)cift_event_buffer->next_event_index);
+    fprintf(fd,"* sizeof(CIFT_EVENT)   =%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
     fprintf(fd,"******************************************************************************\n");
 
     CIFT_EVENT* pEvent = 0;
@@ -168,16 +168,16 @@ CIFT_COUNT cift_dump_to_bin_file( const char* outputFile )
 
     printf("**************************************************\n");
     printf("* magic                = %c %c %c %c\n",cift_event_buffer->magic[0],cift_event_buffer->magic[1],cift_event_buffer->magic[2],cift_event_buffer->magic[3]);
-    printf("* endian              = %u\n",(unsigned)cift_event_buffer->endian);
-    printf("* addr_bytes          = %u\n",(unsigned)cift_event_buffer->addr_bytes);
-    printf("* cift_count_bytes    = %u\n",(unsigned)cift_event_buffer->cift_count_bytes);
-    printf("* total_bytes         = %llu\n",(uint64_t)cift_event_buffer->total_bytes);
-    printf("* init_timestamp      = %016llu\n",(uint64_t)cift_event_buffer->init_timestamp);
-    printf("* buffer_mode         = %u\n",cift_event_buffer->buffer_mode);
-    printf("* max_event_count     = %llu\n",(uint64_t)cift_event_buffer->max_event_count);
+    printf("* endian               = %u\n",(unsigned)cift_event_buffer->endian);
+    printf("* addr_bytes           = %u\n",(unsigned)cift_event_buffer->addr_bytes);
+    printf("* cift_count_bytes     = %u\n",(unsigned)cift_event_buffer->cift_count_bytes);
+    printf("* total_bytes          = %llu\n",(uint64_t)cift_event_buffer->total_bytes);
+    printf("* init_timestamp       = %016llu\n",(uint64_t)cift_event_buffer->init_timestamp);
+    printf("* buffer_mode          = %u\n",cift_event_buffer->buffer_mode);
+    printf("* max_event_count      = %llu\n",(uint64_t)cift_event_buffer->max_event_count);
     printf("* total_events_added   = %llu\n",(uint64_t)cift_event_buffer->total_events_added);
     printf("* total_events_dropped = %llu\n",(uint64_t)cift_event_buffer->total_events_dropped);
-    printf("* next_event_index    = %llu\n",(uint64_t)cift_event_buffer->next_event_index);
+    printf("* next_event_index     = %llu\n",(uint64_t)cift_event_buffer->next_event_index);
     printf("**************************************************\n");
 
     uint8_t* pBuffer = (uint8_t*)cift_event_buffer;
@@ -202,6 +202,7 @@ CIFT_COUNT cift_dump_to_bin_file( const char* outputFile )
     return cift_event_buffer->total_events_added;
 }
 
+#if ((CIFT_ATEXIT_DUMP_BIN_LOG) || (CIFT_ATEXIT_DUMP_TEXT_LOG))
 void cift_file_dump_atexit_handler()
 {
     cift_set_enable(0);
@@ -209,8 +210,14 @@ void cift_file_dump_atexit_handler()
     printf("\nCIFT exit handler called.\n");
 
     //TODO maybe whether we dump to text and/or binary should be compile time options as well?
+	#if (CIFT_ATEXIT_DUMP_TEXT_LOG)
     cift_dump_to_text_file("cift_output.txt");
+	#endif
+
+    #if (CIFT_ATEXIT_DUMP_BIN_LOG)
     cift_dump_to_bin_file( "cift_output.bin");
+	#endif
 }
+#endif
 
 #endif

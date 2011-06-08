@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <map>
+#include <algorithm> //for_each
 
 template< typename R, typename T >
 class RangeItem {
@@ -119,6 +120,12 @@ public:
 			}
 		}
 		return 0;
+	}
+
+	template< typename FUNCTOR >
+	FUNCTOR for_each( FUNCTOR f )
+	{
+		return std::for_each(rangeVector.begin(),rangeVector.end(),f);
 	}
 
 	/*

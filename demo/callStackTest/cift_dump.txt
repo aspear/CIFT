@@ -1,4 +1,10 @@
 CIFT dumper/converter version 0.2
+********* RANGE TABLE ***************
+000) 0x08048944-0x080489D4 function4(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:18
+001) 0x080489D5-0x08048A6D function3(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:26
+002) 0x08048A6E-0x08048B06 function2(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:34
+003) 0x08048B07-0x08048B9F function1(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:42
+********* END RANGE TABLE ***************
 cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file size: 4194304
 ******************************************************************************
 * magic               = C I F T
@@ -6,7 +12,7 @@ cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file 
 * addr_bytes          = 4
 * cift_count_bytes    = 4
 * total_bytes         = 4194304
-* init_timestamp      = 1067393939484673
+* init_timestamp      = 35150118525268
 * buffer_mode         = 0
 * max_event_count     = 149794
 * total_events_added   = 14
@@ -17,19 +23,19 @@ cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file 
 * eventsInBuffers=14 startingIndex=0
 ******************************************************************************
 timestamp,context,type,function,caller,total count
-1067393939490314,0x00000000,+,level=00 0x0804977D ? -> 0x08048B2F ?
-1067393939498326,0x00000000,+,level=01 0x08048B5C ? -> 0x08048A9D ?
-1067393939873558,0x00000000,-,level=00 0x08048A9D ? -> 0x08048B5C ?
-1067393939874364,0x00000000,-,level=-1 0x08048B2F ? -> 0x0804977D ?
-1067414959679394,0x00000000,+,level=00 0x00272CE7 ? -> 0x08048A10 ?
-1067414959933250,0x00000000,+,level=01 0x08048A57 ? -> 0x080489C8 function1()+0
-1067414959934410,0x00000000,+,level=02 0x080489E7 function1()+31 -> 0x0804898C function2()+0
-1067414959934722,0x00000000,+,level=03 0x080489AB function2()+31 -> 0x08048944 function3()+0
-1067414959935034,0x00000000,-,level=02 0x08048944 function3()+0 -> 0x080489AB function2()+31
-1067414959935290,0x00000000,-,level=01 0x0804898C function2()+0 -> 0x080489E7 function1()+31
-1067414959935586,0x00000000,+,level=02 0x080489EF function1()+39 -> 0x08048944 function3()+0
-1067414959935834,0x00000000,-,level=01 0x08048944 function3()+0 -> 0x080489EF function1()+39
-1067414959936146,0x00000000,-,level=00 0x080489C8 function1()+0 -> 0x08048A57 ?
-1067414959936370,0x00000000,-,level=-1 0x08048A10 ? -> 0x00272CE7 ?
+35150118530969,0x00000000,+,level=00 0x0804992D ? -> 0x08048CEA ?
+35150118536803,0x00000000,+,level=01 0x08048D17 ? -> 0x08048C58 ?
+35150119827749,0x00000000,-,level=00 0x08048C58 ? -> 0x08048D17 ?
+35150119828380,0x00000000,-,level=-1 0x08048CEA ? -> 0x0804992D ?
+35154666284652,0x00000000,+,level=00 0x00272CE7 ? -> 0x08048BA0 ?
+35154666689636,0x00000000,+,level=01 0x08048BEE ? -> 0x08048B07 function1(int)+0
+35154685993188,0x00000000,+,level=02 0x08048B54 function1(int)+77 -> 0x08048A6E function2(int)+0
+35154703441804,0x00000000,+,level=03 0x08048ABB function2(int)+77 -> 0x080489D5 function3(int)+0
+35154723856484,0x00000000,+,level=04 0x08048A22 function3(int)+77 -> 0x08048944 function4(int)+0
+35154743161048,0x00000000,-,level=03 0x08048944 function4(int)+0 -> 0x08048A22 function3(int)+77
+35154750403108,0x00000000,-,level=02 0x080489D5 function3(int)+0 -> 0x08048ABB function2(int)+77
+35154757822392,0x00000000,-,level=01 0x08048A6E function2(int)+0 -> 0x08048B54 function1(int)+77
+35154767608120,0x00000000,-,level=00 0x08048B07 function1(int)+0 -> 0x08048BEE ?
+35154777022805,0x00000000,-,level=-1 0x08048BA0 ? -> 0x00272CE7 ?
 ******************************************************************************
 * cift-dump: 14 events dumped

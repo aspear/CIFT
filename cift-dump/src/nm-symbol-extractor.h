@@ -62,6 +62,14 @@ public:
 		return String(buffer);
 	}
 
+	String toOffsetString( uint64_t address )
+	{
+		char buffer[1024];
+		snprintf(buffer,sizeof(buffer)-1,"%s+%d",name.c_str(),(int)(address - lowAddress));
+		buffer[sizeof(buffer)-1]=0;
+		return String(buffer);
+	}
+
 	//yeah, public members is bad form, sorry.
 	uint64_t 	lowAddress;
 	uint64_t 	highAddress;
@@ -103,6 +111,8 @@ class SymbolLookup
 		*/
 		String getStringForAddress( uint64_t address );
 
+		void dumpSymbols(void);
+
 		//TODO remove these
 		void testAddress( uint64_t address );
 		void test();
@@ -129,7 +139,6 @@ class SymbolLookup
 		bool parseSymbolFile( const String& symbolFilePath);
 
 	protected:
-
 		RangeLookup<uint64_t,FunctionInfo> rangeLookup;
 };
 
