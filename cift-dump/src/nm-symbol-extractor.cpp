@@ -88,6 +88,8 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 	int retVal;
 	int lineCount = 0;
 	int linesInFileCount=0;
+	uint64_t lastAddress=0;
+	uint64_t currentAddress=0;
 
 	FILE* fd = fopen(symbolFilePath.c_str(),"rt");
 	if (!fd)
@@ -97,17 +99,33 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 
 	char buffer[1024];
 	regexp* re_full_args=0;
+	regexp* re_no_args=0;
+	regexp* re_no_args_no_file=0;
 
 	//this pattern works in java but fails with stock POSIX regcomp,regexec.  I punted and used a library that
 	//I know works
 	// lines are formatted like this:
 	// 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
-	const char* fullFuncArgslinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+T[ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
+	const char* fullFuncArgslinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+[T|t][ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
+	const char* noFuncArgslinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+[T|t][ \t]+([^/)]+)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
+	const char* noFuncArgsNoFilelinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+[T|t][ \t]+([.]+)";
 
 	retVal =  re_comp(&re_full_args,fullFuncArgslinePattern);
 	if (retVal< 0)
 	{
 		fprintf(stderr,"ERROR failed to compile regex '%s'\n",fullFuncArgslinePattern);
+		return false;
+	}
+	retVal =  re_comp(&re_no_args,noFuncArgslinePattern);
+	if (retVal< 0)
+	{
+		fprintf(stderr,"ERROR failed to compile regex '%s'\n",noFuncArgslinePattern);
+		return false;
+	}
+	retVal =  re_comp(&re_no_args_no_file,noFuncArgsNoFilelinePattern);
+	if (retVal< 0)
+	{
+		fprintf(stderr,"ERROR failed to compile regex '%s'\n",noFuncArgsNoFilelinePattern);
 		return false;
 	}
 
@@ -124,27 +142,63 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 
 		linesInFileCount++;
 
+		//first off check to see if we can extract an address from the current line
+		currentAddress = (uint64_t)strtoull(line,&pEnd,16);
+		if (pEnd ==line)
+		{
+			//unable to extract an address as the first thing, forget this line
+			continue;
+		}
+
+		if (currentAddress == 0)
+		{
+			//drop all zeros.  in addition, if we get a 0 we clear the lastAddress so that ranges are not
+			//messed up.
+			lastAddress = 0;
+			continue;
+		}
+
+		//you got an address as the first element.  there are then a number of different possible formats for
+		//lines.  In one format you simply have text labels with no other additional info, e.g.
+
+
 		//execute a match on this line
 		retVal = re_exec(re_full_args,line,subExpCount,&matches[0]);
-
 		if (retVal < 1)
 		{
-			//failed to match this line
-			continue;
+			//failed to match this line.  try the no args version
+			retVal = re_exec(re_no_args,line,subExpCount,&matches[0]);
+			if (retVal < 1)
+			{
+				retVal = re_exec(re_no_args_no_file,line,subExpCount,&matches[0]);
+				if (retVal < 1)
+				{
+					//failed to match this line.
+					continue;
+				}
+			}
 		}
 
 		if (matches[1].begin != matches[1].end)
 		{
 			char* valueString = line + matches[1].begin;
 			*(line + matches[1].end) = 0;
-			functionInfo.lowAddress = (uint64_t)strtoull(valueString,&pEnd,16);
+			currentAddress = (uint64_t)strtoull(valueString,&pEnd,16);
 			if (pEnd ==valueString)
+			{
+				currentAddress = 0;
+				lastAddress = 0;
 				continue;
-			functionInfo.lowAddress += addressBias;
+			}
+
+			currentAddress += addressBias;
+			functionInfo.lowAddress = currentAddress;
 		}
 		else
 		{
 			//if you don't get the start address then you have nothing.
+			currentAddress = 0;
+			lastAddress = 0;
 			continue;
 		}
 		if (matches[2].begin != matches[2].end)
@@ -161,7 +215,8 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 			char* valueString = line + matches[3].begin;
 			*(line + matches[3].end) = 0;
 			functionInfo.name = valueString;
-			functionInfo.name += ")";
+			if (functionInfo.name.find('(') != String::npos)
+				functionInfo.name += ")";
 		}
 		else
 		{

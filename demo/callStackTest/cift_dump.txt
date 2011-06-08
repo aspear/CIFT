@@ -4,6 +4,21 @@ CIFT dumper/converter version 0.2
 001) 0x080489D5-0x08048A6D function3(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:26
 002) 0x08048A6E-0x08048B06 function2(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:34
 003) 0x08048B07-0x08048B9F function1(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:42
+004) 0x08048BA0-0x08048C57 main /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:52
+005) 0x08048C58-0x08048CE9 __static_initialization_and_destruction_0(int, int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:57
+006) 0x08048D2C-0x08048D41 cift_get_timestamp /home/joe/trace/CIFT/cift/Debug/../cycle.h:211
+007) 0x08048D42-0x08048D4E cift_get_current_thread /home/joe/trace/CIFT/cift/Debug/../cift_os.h:45
+008) 0x08048D4F-0x08048DFD cift_get_next_event /home/joe/trace/CIFT/cift/Debug/../cift.c:101
+009) 0x08048DFE-0x08048E91 cift_log_function_event /home/joe/trace/CIFT/cift/Debug/../cift.c:149
+010) 0x08048E92-0x08048EBC __cyg_profile_func_enter /home/joe/trace/CIFT/cift/Debug/../cift.c:193
+011) 0x08048EBD-0x08048EE7 __cyg_profile_func_exit /home/joe/trace/CIFT/cift/Debug/../cift.c:202
+012) 0x08048EE8-0x08048F02 cift_set_enable /home/joe/trace/CIFT/cift/Debug/../cift.c:210
+013) 0x08048F03-0x08048F0C cift_get_enable /home/joe/trace/CIFT/cift/Debug/../cift.c:219
+014) 0x08048F0D-0x08049053 cift_configure /home/joe/trace/CIFT/cift/Debug/../cift.c:224
+015) 0x08049054-0x0804906F cift_default_init /home/joe/trace/CIFT/cift/Debug/../cift.c:281
+016) 0x08049070-0x08049544 cift_dump_to_text_file /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:42
+017) 0x08049545-0x08049826 cift_dump_to_bin_file /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:143
+018) 0x08049827-0x08049852 cift_file_dump_atexit_handler /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:206
 ********* END RANGE TABLE ***************
 cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file size: 4194304
 ******************************************************************************
@@ -12,7 +27,7 @@ cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file 
 * addr_bytes          = 4
 * cift_count_bytes    = 4
 * total_bytes         = 4194304
-* init_timestamp      = 35150118525268
+* init_timestamp      = 36592708564157
 * buffer_mode         = 0
 * max_event_count     = 149794
 * total_events_added   = 14
@@ -23,19 +38,19 @@ cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file 
 * eventsInBuffers=14 startingIndex=0
 ******************************************************************************
 timestamp,context,type,function,caller,total count
-35150118530969,0x00000000,+,level=00 0x0804992D ? -> 0x08048CEA ?
-35150118536803,0x00000000,+,level=01 0x08048D17 ? -> 0x08048C58 ?
-35150119827749,0x00000000,-,level=00 0x08048C58 ? -> 0x08048D17 ?
-35150119828380,0x00000000,-,level=-1 0x08048CEA ? -> 0x0804992D ?
-35154666284652,0x00000000,+,level=00 0x00272CE7 ? -> 0x08048BA0 ?
-35154666689636,0x00000000,+,level=01 0x08048BEE ? -> 0x08048B07 function1(int)+0
-35154685993188,0x00000000,+,level=02 0x08048B54 function1(int)+77 -> 0x08048A6E function2(int)+0
-35154703441804,0x00000000,+,level=03 0x08048ABB function2(int)+77 -> 0x080489D5 function3(int)+0
-35154723856484,0x00000000,+,level=04 0x08048A22 function3(int)+77 -> 0x08048944 function4(int)+0
-35154743161048,0x00000000,-,level=03 0x08048944 function4(int)+0 -> 0x08048A22 function3(int)+77
-35154750403108,0x00000000,-,level=02 0x080489D5 function3(int)+0 -> 0x08048ABB function2(int)+77
-35154757822392,0x00000000,-,level=01 0x08048A6E function2(int)+0 -> 0x08048B54 function1(int)+77
-35154767608120,0x00000000,-,level=00 0x08048B07 function1(int)+0 -> 0x08048BEE ?
-35154777022805,0x00000000,-,level=-1 0x08048BA0 ? -> 0x00272CE7 ?
+36592708574149,0x00000000,+,level=00 0x0804992D ? -> 0x08048CEA ?
+36592708584933,0x00000000,+,level=01 0x08048D17 ? -> 0x08048C58 __static_initialization_and_destruction_0(int, int)+0
+36592709640605,0x00000000,-,level=00 0x08048C58 __static_initialization_and_destruction_0(int, int)+0 -> 0x08048D17 ?
+36592709641837,0x00000000,-,level=-1 0x08048CEA ? -> 0x0804992D ?
+36594914891489,0x00000000,+,level=00 0x00272CE7 ? -> 0x08048BA0 main+0
+36594915122961,0x00000000,+,level=01 0x08048BEE main+78 -> 0x08048B07 function1(int)+0
+36594931528913,0x00000000,+,level=02 0x08048B54 function1(int)+77 -> 0x08048A6E function2(int)+0
+36594963011434,0x00000000,+,level=03 0x08048ABB function2(int)+77 -> 0x080489D5 function3(int)+0
+36594971916259,0x00000000,+,level=04 0x08048A22 function3(int)+77 -> 0x08048944 function4(int)+0
+36594990573484,0x00000000,-,level=03 0x08048944 function4(int)+0 -> 0x08048A22 function3(int)+77
+36595006528714,0x00000000,-,level=02 0x080489D5 function3(int)+0 -> 0x08048ABB function2(int)+77
+36595016032869,0x00000000,-,level=01 0x08048A6E function2(int)+0 -> 0x08048B54 function1(int)+77
+36595027719089,0x00000000,-,level=00 0x08048B07 function1(int)+0 -> 0x08048BEE main+78
+36595027804494,0x00000000,-,level=-1 0x08048BA0 main+0 -> 0x00272CE7 ?
 ******************************************************************************
 * cift-dump: 14 events dumped
