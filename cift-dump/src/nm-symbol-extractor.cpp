@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include "re2/regexp.h"
 
@@ -83,6 +84,71 @@ bool SymbolLookup::generateNMSymbolFile( const String& executablePath ) {
 	return retVal == 0;
 }
 
+static const char* skipWhiteSpace(const char* pName)
+{
+	while(pName && isspace(*pName))
+		pName++;
+	return pName;
+}
+
+/*
+ * @param pStart the string to scan an identifier from
+ * @param name the string to append the name too
+ * @return the end position
+ */
+char* extractFunctionOrLabelName(const char* pName, String& name)
+{
+	unsigned parenCount=0;
+	for(;pName != 0 && *pName;++pName)
+	{
+		char c = *pName;
+		if (c == '(')
+		{
+			parenCount++;
+		}
+		else if (c == ')')
+		{
+			parenCount--;
+		}
+		//if the paren count is 0 and this is a space we are done
+		if ((parenCount == 0) && isspace(c))
+		{
+			break;
+		}
+		else
+		{
+			name += c;
+		}
+	}
+	return (char*)skipWhiteSpace(pName);
+}
+
+/*
+
+08048750 t .plt
+08048890 t .text
+08048890 T _start
+080488c0 t __do_global_dtors_aux
+08048920 t frame_dummy
+08048944 00000091 T function4(int)	/home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:18
+08048ba0 000000b8 T main	/home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:52
+08048c58 00000092 t __static_initialization_and_destruction_0(int, int)	/home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:57
+08048cea 00000042 t global constructors keyed to someVariable
+08048d2c 00000016 t cift_get_timestamp	/home/joe/trace/CIFT/cift/Debug/../cycle.h:211
+08049860 00000005 T __libc_csu_fini
+08049870 0000005a T __libc_csu_init
+080498ca T __i686.get_pc_thunk.bx
+080498d0 0000003b T atexit
+08049910 t __do_global_ctors_aux
+0804993c t .fini
+0804993c T _fini
+08049958 r .rodata
+08049958 00000004 R _fp_hw
+0804995c 00000004 R _IO_stdin_used
+08049dd4 r .eh_frame_hdr
+08049e18 r .eh_frame
+*/
+
 bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t addressBias/*=0*/ )
 {
 	int retVal;
@@ -98,40 +164,28 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 	}
 
 	char buffer[1024];
-	regexp* re_full_args=0;
-	regexp* re_no_args=0;
-	regexp* re_no_args_no_file=0;
+	regexp* re_file_line=0;
 
 	//this pattern works in java but fails with stock POSIX regcomp,regexec.  I punted and used a library that
 	//I know works
 	// lines are formatted like this:
 	// 08048ad0 0000004c T card_class::suit_to_string()	/home/joe/trace/CIFT/demo/parallel_speed/Debug/../card.cpp:32
-	const char* fullFuncArgslinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+[T|t][ \t]+([^\\)]+)\\)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
-	const char* noFuncArgslinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+[T|t][ \t]+([^/)]+)[ \t]+([a-zA-Z0-9/-_\\.]+):([0-9]+)";
-	const char* noFuncArgsNoFilelinePattern = "^([0-9A-Fa-f]+)[ \t]+([0-9A-Fa-f]+)[ \t]+[T|t][ \t]+([.]+)";
+	const char* fileLinePattern = "([^:]+):([0-9]+)";
 
-	retVal =  re_comp(&re_full_args,fullFuncArgslinePattern);
+	retVal =  re_comp(&re_file_line,fileLinePattern);
 	if (retVal< 0)
 	{
-		fprintf(stderr,"ERROR failed to compile regex '%s'\n",fullFuncArgslinePattern);
-		return false;
-	}
-	retVal =  re_comp(&re_no_args,noFuncArgslinePattern);
-	if (retVal< 0)
-	{
-		fprintf(stderr,"ERROR failed to compile regex '%s'\n",noFuncArgslinePattern);
-		return false;
-	}
-	retVal =  re_comp(&re_no_args_no_file,noFuncArgsNoFilelinePattern);
-	if (retVal< 0)
-	{
-		fprintf(stderr,"ERROR failed to compile regex '%s'\n",noFuncArgsNoFilelinePattern);
+		fprintf(stderr,"ERROR failed to compile regex '%s'\n",fileLinePattern);
 		return false;
 	}
 
+	bool waitingForEndOfRange=false;
+
+	//the functionInfo is always the PREVIOUS line, that is the one you want to add.  so, when you get a new
+	//address, it is finishing the previous address
 	FunctionInfo functionInfo;
 
-	unsigned subExpCount = re_nsubexp(re_full_args);
+	unsigned subExpCount = re_nsubexp(re_file_line);
 
 	regmatch* matches = new regmatch[subExpCount];
 
@@ -139,12 +193,13 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 	while( (line=fgets(buffer,sizeof(buffer)-1,fd))!= 0)
 	{
 		char* pEnd=0;
+		const char* pStart=line;
 
 		linesInFileCount++;
 
 		//first off check to see if we can extract an address from the current line
-		currentAddress = (uint64_t)strtoull(line,&pEnd,16);
-		if (pEnd ==line)
+		currentAddress = (uint64_t)strtoull(pStart,&pEnd,16);
+		if (pEnd==line || pEnd == 0)
 		{
 			//unable to extract an address as the first thing, forget this line
 			continue;
@@ -158,100 +213,80 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 			continue;
 		}
 
-		//you got an address as the first element.  there are then a number of different possible formats for
-		//lines.  In one format you simply have text labels with no other additional info, e.g.
-
-
-		//execute a match on this line
-		retVal = re_exec(re_full_args,line,subExpCount,&matches[0]);
-		if (retVal < 1)
+		if (waitingForEndOfRange)
 		{
-			//failed to match this line.  try the no args version
-			retVal = re_exec(re_no_args,line,subExpCount,&matches[0]);
-			if (retVal < 1)
+			//if we are waiting for an end of range, we need to finish the element in functionInfo with
+			//currentAddress - 1 and then add it.
+			functionInfo.highAddress = currentAddress - 1;
+			rangeLookup.insertRange(functionInfo.lowAddress,functionInfo.highAddress,functionInfo);
+		}
+
+		functionInfo.name = "";
+		functionInfo.file = "";
+		functionInfo.line = -1;
+		functionInfo.lowAddress = currentAddress;
+
+		//you got an address as the first element.  there are then a number of different possible formats for
+		//lines.  lets figure out which this is.
+		pStart = pEnd + 1; //skip the space
+
+		//see if we have a range.
+		uint64_t unitCount = (uint64_t)strtoull(pStart,&pEnd,16);
+		bool gotRangeEnd = pEnd!=pStart;
+		if (gotRangeEnd)
+		{
+			pStart = pEnd; //skip the space after the unit count
+			pStart = skipWhiteSpace(pStart);
+
+			//you got a valid range size here, going to set it now
+			functionInfo.highAddress = functionInfo.lowAddress + unitCount - 1;
+			waitingForEndOfRange = false;
+		}
+		else
+		{
+			waitingForEndOfRange = true;
+		}
+
+		//next field should be the type of item it is: t, T, r, D, d
+		//extract it and then skip space
+		char fieldType = *pStart++;
+		pStart = skipWhiteSpace(pStart);
+
+		char* pNameEnd = extractFunctionOrLabelName(pStart,functionInfo.name);
+
+		if (pNameEnd && (pNameEnd != pStart) && *pNameEnd )
+		{
+			// now extract the file path IF it exists
+			retVal = re_exec(re_file_line,pNameEnd,subExpCount,&matches[0]);
+			if (retVal >= 0)
 			{
-				retVal = re_exec(re_no_args_no_file,line,subExpCount,&matches[0]);
-				if (retVal < 1)
+				if (matches[1].begin != matches[1].end)
 				{
-					//failed to match this line.
-					continue;
+					char* valueString = pNameEnd + matches[1].begin;
+					*(pNameEnd + matches[1].end) = 0;
+					functionInfo.file = valueString;
+				}
+				if (matches[2].begin != matches[2].end)
+				{
+					char* valueString = pNameEnd + matches[2].begin;
+					*(pNameEnd + matches[2].end) = 0;
+					functionInfo.line = strtol(valueString,&pEnd,0);
+					if (pEnd ==valueString)
+						functionInfo.line = -1;
 				}
 			}
 		}
 
-		if (matches[1].begin != matches[1].end)
-		{
-			char* valueString = line + matches[1].begin;
-			*(line + matches[1].end) = 0;
-			currentAddress = (uint64_t)strtoull(valueString,&pEnd,16);
-			if (pEnd ==valueString)
-			{
-				currentAddress = 0;
-				lastAddress = 0;
-				continue;
-			}
-
-			currentAddress += addressBias;
-			functionInfo.lowAddress = currentAddress;
-		}
-		else
-		{
-			//if you don't get the start address then you have nothing.
-			currentAddress = 0;
-			lastAddress = 0;
-			continue;
-		}
-		if (matches[2].begin != matches[2].end)
-		{
-			char* valueString = line + matches[2].begin;
-			*(line + matches[2].end) = 0;
-			uint64_t unitCount = (uint64_t)strtoull(valueString,&pEnd,16);
-			if (pEnd ==valueString)
-				continue;
-			functionInfo.highAddress = functionInfo.lowAddress + unitCount - 1;
-		}
-		if (matches[3].begin != matches[3].end)
-		{
-			char* valueString = line + matches[3].begin;
-			*(line + matches[3].end) = 0;
-			functionInfo.name = valueString;
-			if (functionInfo.name.find('(') != String::npos)
-				functionInfo.name += ")";
-		}
-		else
-		{
-			functionInfo.name = "";
-		}
-		if (matches[4].begin != matches[4].end)
-		{
-			char* valueString = line + matches[4].begin;
-			*(line + matches[4].end) = 0;
-			functionInfo.file = valueString;
-		}
-		else
-		{
-			functionInfo.file = "";
-		}
-		if (matches[5].begin != matches[5].end)
-		{
-			char* valueString = line + matches[5].begin;
-			*(line + matches[5].end) = 0;
-			functionInfo.line = strtol(valueString,&pEnd,0);
-			if (pEnd ==valueString)
-				functionInfo.line = -1;
-		}
-		else
-		{
-			functionInfo.line = -1;
-		}
-
 		lineCount++;
 
-		//printf("line:%u adding:%s\n",linesInFileCount,functionInfo().c_str());
-
-		rangeLookup.insertRange(functionInfo.lowAddress,functionInfo.highAddress,functionInfo);
+		if (!waitingForEndOfRange)
+		{
+			//add it now
+			//printf("line:%u adding:%s\n",linesInFileCount,functionInfo().c_str());
+			rangeLookup.insertRange(functionInfo.lowAddress,functionInfo.highAddress,functionInfo);
+		}
 	}
-	re_free(re_full_args);
+	re_free(re_file_line);
 
 	return true;
 }
@@ -271,11 +306,10 @@ struct SymbolDumpFunctor
 
 void SymbolLookup::dumpSymbols()
 {
-	printf("********* RANGE TABLE ***************\n");
+	printf("******************** RANGE TABLE ********************************************\n");
 	SymbolDumpFunctor f;
-	f.count=0;
 	rangeLookup.for_each(f);
-	printf("********* END RANGE TABLE ***************\n");
+	printf("******************** RANGE TABLE END ****************************************\n");
 }
 
 String SymbolLookup::getStringForAddress( uint64_t address )

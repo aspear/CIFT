@@ -1,47 +1,104 @@
 CIFT dumper/converter version 0.2
-********* RANGE TABLE ***************
-000) 0x08048944-0x080489D4 function4(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:18
-001) 0x080489D5-0x08048A6D function3(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:26
-002) 0x08048A6E-0x08048B06 function2(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:34
-003) 0x08048B07-0x08048B9F function1(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:42
-004) 0x08048BA0-0x08048C57 main /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:52
-005) 0x08048C58-0x08048CE9 __static_initialization_and_destruction_0(int, int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:57
-006) 0x08048D2C-0x08048D41 cift_get_timestamp /home/joe/trace/CIFT/cift/Debug/../cycle.h:211
-007) 0x08048D42-0x08048D4E cift_get_current_thread /home/joe/trace/CIFT/cift/Debug/../cift_os.h:45
-008) 0x08048D4F-0x08048DFD cift_get_next_event /home/joe/trace/CIFT/cift/Debug/../cift.c:101
-009) 0x08048DFE-0x08048E91 cift_log_function_event /home/joe/trace/CIFT/cift/Debug/../cift.c:149
-010) 0x08048E92-0x08048EBC __cyg_profile_func_enter /home/joe/trace/CIFT/cift/Debug/../cift.c:193
-011) 0x08048EBD-0x08048EE7 __cyg_profile_func_exit /home/joe/trace/CIFT/cift/Debug/../cift.c:202
-012) 0x08048EE8-0x08048F02 cift_set_enable /home/joe/trace/CIFT/cift/Debug/../cift.c:210
-013) 0x08048F03-0x08048F0C cift_get_enable /home/joe/trace/CIFT/cift/Debug/../cift.c:219
-014) 0x08048F0D-0x08049053 cift_configure /home/joe/trace/CIFT/cift/Debug/../cift.c:224
-015) 0x08049054-0x0804906F cift_default_init /home/joe/trace/CIFT/cift/Debug/../cift.c:281
-016) 0x08049070-0x08049544 cift_dump_to_text_file /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:42
-017) 0x08049545-0x08049826 cift_dump_to_bin_file /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:143
-018) 0x08049827-0x08049852 cift_file_dump_atexit_handler /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:206
-********* END RANGE TABLE ***************
+******************** RANGE TABLE ********************************************
+000) 0x08048154-0x08048167 .interp :-1
+001) 0x08048168-0x08048187 .note.ABI-tag :-1
+002) 0x08048188-0x080481AB .note.gnu.build-id :-1
+003) 0x080481AC-0x080481EF .gnu.hash :-1
+004) 0x080481F0-0x0804838F .dynsym :-1
+005) 0x08048390-0x080485A9 .dynstr :-1
+006) 0x080485AA-0x080485DF .gnu.version :-1
+007) 0x080485E0-0x0804866F .gnu.version_r :-1
+008) 0x08048670-0x08048687 .rel.dyn :-1
+009) 0x08048688-0x0804871F .rel.plt :-1
+010) 0x08048720-0x0804871F .init :-1
+011) 0x08048720-0x0804874F _init :-1
+012) 0x08048750-0x0804888F .plt :-1
+013) 0x08048890-0x0804888F .text :-1
+014) 0x08048890-0x080488BF _start :-1
+015) 0x080488C0-0x0804891F __do_global_dtors_aux :-1
+016) 0x08048920-0x08048943 frame_dummy :-1
+017) 0x08048944-0x080489D4 function4(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:18
+018) 0x080489D5-0x08048A6D function3(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:26
+019) 0x08048A6E-0x08048B06 function2(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:34
+020) 0x08048B07-0x08048B9F function1(int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:42
+021) 0x08048BA0-0x08048C57 main /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:52
+022) 0x08048C58-0x08048CE9 __static_initialization_and_destruction_0(int, int) /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:57
+023) 0x08048CEA-0x08048D2B global constructors keyed to someVariable
+:-1
+024) 0x08048D2C-0x08048D41 cift_get_timestamp /home/joe/trace/CIFT/cift/Debug/../cycle.h:211
+025) 0x08048D42-0x08048D4E cift_get_current_thread /home/joe/trace/CIFT/cift/Debug/../cift_os.h:45
+026) 0x08048D4F-0x08048DFD cift_get_next_event /home/joe/trace/CIFT/cift/Debug/../cift.c:101
+027) 0x08048DFE-0x08048E91 cift_log_function_event /home/joe/trace/CIFT/cift/Debug/../cift.c:149
+028) 0x08048E92-0x08048EBC __cyg_profile_func_enter /home/joe/trace/CIFT/cift/Debug/../cift.c:193
+029) 0x08048EBD-0x08048EE7 __cyg_profile_func_exit /home/joe/trace/CIFT/cift/Debug/../cift.c:202
+030) 0x08048EE8-0x08048F02 cift_set_enable /home/joe/trace/CIFT/cift/Debug/../cift.c:210
+031) 0x08048F03-0x08048F0C cift_get_enable /home/joe/trace/CIFT/cift/Debug/../cift.c:219
+032) 0x08048F0D-0x08049053 cift_configure /home/joe/trace/CIFT/cift/Debug/../cift.c:224
+033) 0x08049054-0x0804906F cift_default_init /home/joe/trace/CIFT/cift/Debug/../cift.c:281
+034) 0x08049070-0x08049544 cift_dump_to_text_file /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:42
+035) 0x08049545-0x08049826 cift_dump_to_bin_file /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:143
+036) 0x08049827-0x08049852 cift_file_dump_atexit_handler /home/joe/trace/CIFT/cift/Debug/../cift_file_dump.c:206
+037) 0x08049860-0x08049864 __libc_csu_fini :-1
+038) 0x08049870-0x080498C9 __libc_csu_init :-1
+039) 0x080498CA-0x080498CF __i686.get_pc_thunk.bx :-1
+040) 0x080498D0-0x0804990A atexit :-1
+041) 0x08049910-0x0804993B __do_global_ctors_aux :-1
+042) 0x0804993C-0x0804993B .fini :-1
+043) 0x0804993C-0x08049957 _fini :-1
+044) 0x08049958-0x08049957 .rodata :-1
+045) 0x08049958-0x0804995B _fp_hw :-1
+046) 0x0804995C-0x0804995F _IO_stdin_used :-1
+047) 0x08049DD4-0x08049E17 .eh_frame_hdr :-1
+048) 0x08049E18-0x08049F37 .eh_frame :-1
+049) 0x08049F38-0x08049F3B __FRAME_END__ :-1
+050) 0x08049F3C-0x0804AEF1 .gcc_except_table :-1
+051) 0x0804AEF2-0x0804AEFE _init_array_end :-1
+052) 0x0804AEF4-0x0804AF00 ctors :-1
+053) 0x0804AEFC-0x0804AF08 _CTOR_END__ :-1
+054) 0x0804AF00-0x0804AF0C dtors :-1
+055) 0x0804AF04-0x0804AF10 _DTOR_END__ :-1
+056) 0x0804AF08-0x0804AF14 jcr :-1
+057) 0x0804AF0C-0x0804AF18 dynamic :-1
+058) 0x0804AFEC-0x0804AFF8 got :-1
+059) 0x0804AFF4-0x0804B000 got.plt :-1
+060) 0x0804B04C-0x0804B058 data :-1
+061) 0x0804B04C-0x0804B04F data_start :-1
+062) 0x0804B050-0x0804B05C _dso_handle :-1
+063) 0x0804B054-0x0804B057 cift_enabled /home/joe/trace/CIFT/cift/Debug/../cift.c:90
+064) 0x0804B058-0x0804B061 _bss_start :-1
+065) 0x0804B060-0x0804B06A bss :-1
+066) 0x0804B060-0x0804B063 stderr@@GLIBC_2.0 :-1
+067) 0x0804B080-0x0804B10B std::cout@@GLIBCXX_3.4 :-1
+068) 0x0804B10C-0x0804B10C completed.7065 :-1
+069) 0x0804B110-0x0804B113 dtor_idx.7067 :-1
+070) 0x0804B114-0x0804B117 someVariable /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:12
+071) 0x0804B118-0x0804B11B delayVar /home/joe/trace/CIFT/demo/callStackTest/Debug/../src/callStackTest.cpp:15
+072) 0x0804B11C-0x0804B11C std::__ioinit :-1
+073) 0x0804B120-0x0804B123 cift_event_buffer /home/joe/trace/CIFT/cift/Debug/../cift.c:87
+074) 0x0804B124-0x0804B12D end :-1
+******************** RANGE TABLE END ****************************************
 cift-dump: opened /home/joe/trace/CIFT/demo/callStackTest/cift_output.bin, file size: 4194304
 ******************************************************************************
-* magic               = C I F T
-* endian              = 17185
-* addr_bytes          = 4
-* cift_count_bytes    = 4
-* total_bytes         = 4194304
-* init_timestamp      = 36592708564157
-* buffer_mode         = 0
-* max_event_count     = 149794
+* magic                = C I F T
+* endian               = 17185
+* addr_bytes           = 4
+* cift_count_bytes     = 4
+* total_bytes          = 4194304
+* init_timestamp       = 36592708564157
+* buffer_mode          = 0
+* max_event_count      = 149794
 * total_events_added   = 14
 * total_events_dropped = 0
-* next_event_index    = 14
+* next_event_index     = 14
 * sizeof(CIFT_EVENT)=28 sizeof(CIFT_EVENT_BUFFER)=48 offsetof=48
 ******************************************************************************
 * eventsInBuffers=14 startingIndex=0
 ******************************************************************************
 timestamp,context,type,function,caller,total count
-36592708574149,0x00000000,+,level=00 0x0804992D ? -> 0x08048CEA ?
-36592708584933,0x00000000,+,level=01 0x08048D17 ? -> 0x08048C58 __static_initialization_and_destruction_0(int, int)+0
-36592709640605,0x00000000,-,level=00 0x08048C58 __static_initialization_and_destruction_0(int, int)+0 -> 0x08048D17 ?
-36592709641837,0x00000000,-,level=-1 0x08048CEA ? -> 0x0804992D ?
+36592708574149,0x00000000,+,level=00 0x0804992D __do_global_ctors_aux+29 -> 0x08048CEA global+0
+36592708584933,0x00000000,+,level=01 0x08048D17 global+45 -> 0x08048C58 __static_initialization_and_destruction_0(int, int)+0
+36592709640605,0x00000000,-,level=00 0x08048C58 __static_initialization_and_destruction_0(int, int)+0 -> 0x08048D17 global+45
+36592709641837,0x00000000,-,level=-1 0x08048CEA global+0 -> 0x0804992D __do_global_ctors_aux+29
 36594914891489,0x00000000,+,level=00 0x00272CE7 ? -> 0x08048BA0 main+0
 36594915122961,0x00000000,+,level=01 0x08048BEE main+78 -> 0x08048B07 function1(int)+0
 36594931528913,0x00000000,+,level=02 0x08048B54 function1(int)+77 -> 0x08048A6E function2(int)+0

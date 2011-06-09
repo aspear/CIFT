@@ -183,17 +183,17 @@ int cift_dump_plain_to_stdout( const char* filename )
     next_event_index    = (uint64_t)ExtractUINTPTR(&cift_event_buffer->next_event_index);
 
     printf("******************************************************************************\n");
-    printf("* magic               = %c %c %c %c\n",cift_event_buffer->magic[0],cift_event_buffer->magic[1],cift_event_buffer->magic[2],cift_event_buffer->magic[3]);
-    printf("* endian              = %u\n",    (unsigned)cift_event_buffer->endian);
-    printf("* addr_bytes          = %u\n",        (unsigned)cift_event_buffer->addr_bytes);
-    printf("* cift_count_bytes    = %u\n",        (unsigned)cift_count_bytes);
-    printf("* total_bytes         = %llu\n",    (uint64_t)total_bytes );
-    printf("* init_timestamp      = %llu\n",    (uint64_t)init_timestamp);
-    printf("* buffer_mode         = %u\n",        (unsigned)buffer_mode);
-    printf("* max_event_count     = %llu\n",    (uint64_t)max_event_count);
+    printf("* magic                = %c %c %c %c\n",cift_event_buffer->magic[0],cift_event_buffer->magic[1],cift_event_buffer->magic[2],cift_event_buffer->magic[3]);
+    printf("* endian               = %u\n",    (unsigned)cift_event_buffer->endian);
+    printf("* addr_bytes           = %u\n",        (unsigned)cift_event_buffer->addr_bytes);
+    printf("* cift_count_bytes     = %u\n",        (unsigned)cift_count_bytes);
+    printf("* total_bytes          = %llu\n",    (uint64_t)total_bytes );
+    printf("* init_timestamp       = %llu\n",    (uint64_t)init_timestamp);
+    printf("* buffer_mode          = %u\n",        (unsigned)buffer_mode);
+    printf("* max_event_count      = %llu\n",    (uint64_t)max_event_count);
     printf("* total_events_added   = %llu\n",    (uint64_t)total_events_added);
     printf("* total_events_dropped = %llu\n",    (uint64_t)total_events_dropped);
-    printf("* next_event_index    = %llu\n",    (uint64_t)next_event_index);
+    printf("* next_event_index     = %llu\n",    (uint64_t)next_event_index);
     printf("* sizeof(CIFT_EVENT)=%u sizeof(CIFT_EVENT_BUFFER)=%u offsetof=%u\n",sizeof(CIFT_EVENT),sizeof(CIFT_EVENT_BUFFER),offsetof(CIFT_EVENT_BUFFER,event_buffer));
     printf("******************************************************************************\n");
 
