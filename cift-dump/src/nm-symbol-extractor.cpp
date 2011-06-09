@@ -92,11 +92,12 @@ static const char* skipWhiteSpace(const char* pName)
 }
 
 /*
+ * extract a valid function/label name from the input string
  * @param pStart the string to scan an identifier from
  * @param name the string to append the name too
  * @return the end position
  */
-char* extractFunctionOrLabelName(const char* pName, String& name)
+static char* extractFunctionOrLabelName(const char* pName, String& name)
 {
 	unsigned parenCount=0;
 	for(;pName != 0 && *pName;++pName)
@@ -154,7 +155,6 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 	int retVal;
 	int lineCount = 0;
 	int linesInFileCount=0;
-	uint64_t lastAddress=0;
 	uint64_t currentAddress=0;
 
 	FILE* fd = fopen(symbolFilePath.c_str(),"rt");
@@ -207,9 +207,7 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 
 		if (currentAddress == 0)
 		{
-			//drop all zeros.  in addition, if we get a 0 we clear the lastAddress so that ranges are not
-			//messed up.
-			lastAddress = 0;
+			//drop all zeros. only evil exists at address 0.
 			continue;
 		}
 
@@ -221,22 +219,22 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 			rangeLookup.insertRange(functionInfo.lowAddress,functionInfo.highAddress,functionInfo);
 		}
 
+		//prepare the next line with this address and then extract what we can from it
+		functionInfo.lowAddress = currentAddress;
 		functionInfo.name = "";
 		functionInfo.file = "";
 		functionInfo.line = -1;
-		functionInfo.lowAddress = currentAddress;
 
 		//you got an address as the first element.  there are then a number of different possible formats for
 		//lines.  lets figure out which this is.
-		pStart = pEnd + 1; //skip the space
+		pStart = skipWhiteSpace(pEnd); //skip the space
 
-		//see if we have a range.
+		//see if we have a range on this particular line
 		uint64_t unitCount = (uint64_t)strtoull(pStart,&pEnd,16);
 		bool gotRangeEnd = pEnd!=pStart;
 		if (gotRangeEnd)
 		{
-			pStart = pEnd; //skip the space after the unit count
-			pStart = skipWhiteSpace(pStart);
+			pStart = skipWhiteSpace(pEnd);//skip the space after the unit count
 
 			//you got a valid range size here, going to set it now
 			functionInfo.highAddress = functionInfo.lowAddress + unitCount - 1;
@@ -248,15 +246,20 @@ bool SymbolLookup::parseNMSymbolFile( const String& symbolFilePath, uint64_t add
 		}
 
 		//next field should be the type of item it is: t, T, r, D, d
-		//extract it and then skip space
+		//extract it and then skip past it
 		char fieldType = *pStart++;
 		pStart = skipWhiteSpace(pStart);
 
+		//extract the function/label name.  there are all sorts of formats.  we basically stop at
+		//whitespace unless that whitespace is between parens (arguments...)
 		char* pNameEnd = extractFunctionOrLabelName(pStart,functionInfo.name);
 
+		//see if there is anything else (file:line)
 		if (pNameEnd && (pNameEnd != pStart) && *pNameEnd )
 		{
 			// now extract the file path IF it exists
+			// TODO get rid of the regex dependency.  I should just be able to look for the colon
+			// and extract based on that
 			retVal = re_exec(re_file_line,pNameEnd,subExpCount,&matches[0]);
 			if (retVal >= 0)
 			{
